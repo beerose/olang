@@ -31,6 +31,7 @@ export interface BinaryExpression extends BaseNode {
     | TokenKind.Asterisk
     | TokenKind.RightSlash
     | TokenKind.Asterisk
+    | TokenKind.Percent
     | TokenKind.AsteriskAsterisk;
   right: Expression;
 }

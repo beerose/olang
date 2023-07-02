@@ -54,58 +54,109 @@ describe("parser", () => {
     expectParsed("-1.5", UnaryExpression(TokenKind.Minus, NumericLiteral(1.5)));
   });
 
-  it("parses arithmetic expressions", () => {
-    expectParsed(
-      "1 * 2",
-      BinaryExpression(NumericLiteral(1), TokenKind.Asterisk, NumericLiteral(2))
-    );
-
-    expectParsed("1 * 2 * 3", {
-      kind: SyntaxKind.BinaryExpression,
-      operator: TokenKind.Asterisk,
-      left: {
-        kind: SyntaxKind.BinaryExpression,
-        operator: TokenKind.Asterisk,
-        left: NumericLiteral(1),
-        right: NumericLiteral(2),
-      },
-      right: NumericLiteral(3),
-    });
-
-    expectParsed(
-      "1 + 2 * 3",
-      BinaryExpression(
-        NumericLiteral(1),
-        TokenKind.Plus,
-        BinaryExpression(
-          NumericLiteral(2),
-          TokenKind.Asterisk,
-          NumericLiteral(3)
-        )
-      )
-    );
-
-    expectParsed(
-      "1 * 2 + 3",
-      BinaryExpression(
+  describe("arithmetic expressions", () => {
+    it("parses multiplication", () => {
+      expectParsed(
+        "1 * 2",
         BinaryExpression(
           NumericLiteral(1),
           TokenKind.Asterisk,
           NumericLiteral(2)
-        ),
-        TokenKind.Plus,
-        NumericLiteral(3)
-      )
-    );
+        )
+      );
 
-    expectParsed(
-      "-1 * 2",
-      BinaryExpression(
-        UnaryExpression(TokenKind.Minus, NumericLiteral(1)),
-        TokenKind.Asterisk,
-        NumericLiteral(2)
-      )
-    );
+      expectParsed("1 * 2 * 3", {
+        kind: SyntaxKind.BinaryExpression,
+        operator: TokenKind.Asterisk,
+        left: {
+          kind: SyntaxKind.BinaryExpression,
+          operator: TokenKind.Asterisk,
+          left: NumericLiteral(1),
+          right: NumericLiteral(2),
+        },
+        right: NumericLiteral(3),
+      });
+    });
+
+    it("parses exponentation", () => {
+      expectParsed(
+        "2 ** 3",
+        BinaryExpression(
+          NumericLiteral(2),
+          TokenKind.AsteriskAsterisk,
+          NumericLiteral(3)
+        )
+      );
+
+      // 2 ^ (3 ^ 2)
+      expectParsed(
+        "2 ** 3 ** 2",
+        BinaryExpression(
+          NumericLiteral(2),
+          TokenKind.AsteriskAsterisk,
+          BinaryExpression(
+            NumericLiteral(3),
+            TokenKind.AsteriskAsterisk,
+            NumericLiteral(2)
+          )
+        )
+      );
+
+      expectParsed(
+        "10 ** 2 * 3",
+        BinaryExpression(
+          BinaryExpression(
+            NumericLiteral(10),
+            TokenKind.AsteriskAsterisk,
+            NumericLiteral(2)
+          ),
+          TokenKind.Asterisk,
+          NumericLiteral(3)
+        )
+      );
+
+      expectParsed(
+        "10 * 2 ** 3",
+        BinaryExpression(
+          NumericLiteral(10),
+          TokenKind.Asterisk,
+          BinaryExpression(
+            NumericLiteral(2),
+            TokenKind.AsteriskAsterisk,
+            NumericLiteral(3)
+          )
+        )
+      );
+    });
+
+    //  (parens, exponents, multiplications and division (from left to right), multiplication and subtraction (from left to right)
+    it("satisfies PEMDAS", () => {
+      expectParsed(
+        "-1 * 2",
+        BinaryExpression(
+          UnaryExpression(TokenKind.Minus, NumericLiteral(1)),
+          TokenKind.Asterisk,
+          NumericLiteral(2)
+        )
+      );
+
+      expectParsed(
+        "1 + 2 * 2 + 1",
+        BinaryExpression(
+          BinaryExpression(
+            NumericLiteral(1),
+            TokenKind.Plus,
+            BinaryExpression(
+              NumericLiteral(2),
+              TokenKind.Asterisk,
+              NumericLiteral(2)
+            )
+          ),
+          TokenKind.Plus,
+          NumericLiteral(1)
+        )
+      );
+    });
   });
 
   it("parses parentheses", () => {
@@ -131,46 +182,6 @@ describe("parser", () => {
         BinaryExpression(NumericLiteral(1), TokenKind.Plus, NumericLiteral(2)),
         TokenKind.Asterisk,
         NumericLiteral(3)
-      )
-    );
-
-    expectParsed(
-      "2 ** 3",
-      BinaryExpression(
-        NumericLiteral(2),
-        TokenKind.AsteriskAsterisk,
-        NumericLiteral(3)
-      )
-    );
-
-    // 2 ^ (3 ^ 2)
-    expectParsed(
-      "2 ** 3 ** 2",
-      BinaryExpression(
-        NumericLiteral(2),
-        TokenKind.AsteriskAsterisk,
-        BinaryExpression(
-          NumericLiteral(3),
-          TokenKind.AsteriskAsterisk,
-          NumericLiteral(2)
-        )
-      )
-    );
-
-    expectParsed(
-      "1 + 2 * 2 + 1",
-      BinaryExpression(
-        BinaryExpression(
-          NumericLiteral(1),
-          TokenKind.Plus,
-          BinaryExpression(
-            NumericLiteral(2),
-            TokenKind.Asterisk,
-            NumericLiteral(2)
-          )
-        ),
-        TokenKind.Plus,
-        NumericLiteral(1)
       )
     );
   });

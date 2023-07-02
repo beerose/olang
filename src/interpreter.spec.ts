@@ -30,6 +30,8 @@ describe("evaluate", () => {
     expectEvaluated("(1 + 2) * 3", 9);
 
     expectEvaluated("1 + 2 * (3 + 4)", 15);
+
+    expectEvaluated("2 * 3 ** 2", 18);
   });
 
   it("evaluates unary expressions", () => {

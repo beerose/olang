@@ -6,6 +6,7 @@ export enum TokenKind {
   Plus = "+",
   Minus = "-",
   Asterisk = "*",
+  Percent = '%',
   AsteriskAsterisk = "**",
   RightSlash = "/",
   LeftParen = "(",

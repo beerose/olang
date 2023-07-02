@@ -84,41 +84,16 @@ Term.setPattern(
 );
 
 PowerExpression.setPattern(
-  apply(
-    seq(Term, rep_sc(seq(tok(TokenKind.AsteriskAsterisk), AdditiveExpression))),
-    ([left, right]): ast.Expression => {
-      if (right.length === 0) {
-        return left;
-      }
-
-      return right.reduce(
-        (acc, [operator, operand]) => ({
-          kind: SyntaxKind.BinaryExpression,
-          operator: operator.kind,
-          left: acc,
-          right: operand,
-        }),
-        left
-      );
-    }
-  )
-);
-
-MultiplicativeExpression.setPattern(
   alt(
-    PowerExpression,
-    lrec_sc(
-      Term,
-      seq(alt(tok(TokenKind.Asterisk), tok(TokenKind.RightSlash)), Term),
-      (left, [operator, right]): ast.BinaryExpression => {
-        console.log({ left, operator, right });
-        return {
-          kind: SyntaxKind.BinaryExpression,
-          operator: operator.kind,
-          left,
-          right,
-        };
-      }
+    Term,
+    apply(
+      seq(Term, tok(TokenKind.AsteriskAsterisk), PowerExpression),
+      ([left, , right]) => ({
+        kind: SyntaxKind.BinaryExpression,
+        operator: TokenKind.AsteriskAsterisk,
+        left,
+        right,
+      })
     )
   )
 );
@@ -130,9 +105,9 @@ MultiplicativeExpression.setPattern(
       alt(
         tok(TokenKind.Asterisk),
         tok(TokenKind.RightSlash),
-        tok(TokenKind.AsteriskAsterisk)
+        tok(TokenKind.Percent)
       ),
-      Term
+      PowerExpression
     ),
     (left, [operator, right]): ast.BinaryExpression => ({
       kind: SyntaxKind.BinaryExpression,
