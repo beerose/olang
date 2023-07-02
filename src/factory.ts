@@ -31,3 +31,10 @@ export function UnaryExpression(
     operand,
   } as const;
 }
+
+export function Identifier(name: string): ast.Identifier {
+  return {
+    kind: ast.SyntaxKind.Identifier,
+    name,
+  } as const;
+}

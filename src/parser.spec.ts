@@ -5,7 +5,12 @@ import * as parser from "./parser";
 
 import { SyntaxKind, Node } from "./ast";
 import { TokenKind } from "./lexer";
-import { BinaryExpression, UnaryExpression, NumericLiteral } from "./factory";
+import {
+  BinaryExpression,
+  UnaryExpression,
+  NumericLiteral,
+  Identifier,
+} from "./factory";
 
 const expectParsed = (expression: string, expected: Node) => {
   const results = parser.parse(expression);
@@ -101,7 +106,10 @@ describe("parser", () => {
   it("parses parentheses", () => {
     expectParsed("(1)", NumericLiteral(1));
 
-    expectParsed("(1 + 2)", BinaryExpression(NumericLiteral(1), TokenKind.Plus, NumericLiteral(2)));
+    expectParsed(
+      "(1 + 2)",
+      BinaryExpression(NumericLiteral(1), TokenKind.Plus, NumericLiteral(2))
+    );
 
     expectParsed(
       "1 * (2 + 3)",
@@ -120,5 +128,58 @@ describe("parser", () => {
         NumericLiteral(3)
       )
     );
-  })
+  });
+
+  it("parses identifiers", () => {
+    expectParsed("a", Identifier("a"));
+
+    expectParsed(
+      "a + b",
+      BinaryExpression(Identifier("a"), TokenKind.Plus, Identifier("b"))
+    );
+
+    expectParsed(
+      "a + b * c",
+      BinaryExpression(
+        Identifier("a"),
+        TokenKind.Plus,
+        BinaryExpression(Identifier("b"), TokenKind.Asterisk, Identifier("c"))
+      )
+    );
+
+    expectParsed(
+      "a * b + c",
+      BinaryExpression(
+        BinaryExpression(Identifier("a"), TokenKind.Asterisk, Identifier("b")),
+        TokenKind.Plus,
+        Identifier("c")
+      )
+    );
+
+    expectParsed(
+      "a * (b + c) / 2",
+      BinaryExpression(
+        BinaryExpression(
+          Identifier("a"),
+          TokenKind.Asterisk,
+          BinaryExpression(Identifier("b"), TokenKind.Plus, Identifier("c"))
+        ),
+        TokenKind.RightSlash,
+        NumericLiteral(2)
+      )
+    );
+
+    expectParsed(
+      "2 * (a + b) * c",
+      BinaryExpression(
+        BinaryExpression(
+          NumericLiteral(2),
+          TokenKind.Asterisk,
+          BinaryExpression(Identifier("a"), TokenKind.Plus, Identifier("b"))
+        ),
+        TokenKind.Asterisk,
+        Identifier("c")
+      )
+    );
+  });
 });

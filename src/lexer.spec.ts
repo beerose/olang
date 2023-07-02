@@ -1,4 +1,4 @@
-import { assert, describe, test } from "vitest";
+import { assert, describe, it } from "vitest";
 import { TokenKind, lexer } from "./lexer";
 
 function notUndefined<T>(t: T | undefined): T {
@@ -7,7 +7,7 @@ function notUndefined<T>(t: T | undefined): T {
 }
 
 describe("lexer", () => {
-  test("simple number", () => {
+  it("tokenizes simple number", () => {
     let token = lexer.parse("123");
 
     token = notUndefined(token);
@@ -18,7 +18,7 @@ describe("lexer", () => {
     assert.strictEqual(token, undefined);
   });
 
-  test("muplitple numbers", () => {
+  it("muplitple numbers", () => {
     let token = lexer.parse("123 456");
 
     while (token !== undefined) {
@@ -28,7 +28,7 @@ describe("lexer", () => {
     }
   });
 
-  test("expression", () => {
+  it("tokenizes expression", () => {
     let token = lexer.parse("1 + 2 - 3");
 
     token = notUndefined(token);
@@ -50,6 +50,17 @@ describe("lexer", () => {
     token = notUndefined(token.next);
     assert.strictEqual(token.kind, TokenKind.Number);
     assert.strictEqual(token.text, "3");
+
+    token = token.next;
+    assert.strictEqual(token, undefined);
+  });
+
+  it("identifier", () => {
+    let token = lexer.parse("a");
+
+    token = notUndefined(token);
+    assert.strictEqual(token.kind, TokenKind.Identifier);
+    assert.strictEqual(token.text, "a");
 
     token = token.next;
     assert.strictEqual(token, undefined);

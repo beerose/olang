@@ -118,12 +118,24 @@ const Term = rule<TokenKind, ast.Expression>();
 const UnaryExpression = rule<TokenKind, ast.UnaryExpression>();
 const MultiplicativeExpression = rule<TokenKind, ast.Expression>();
 const AdditiveExpression = rule<TokenKind, ast.Expression>();
+const Identifier = rule<TokenKind, ast.Identifier>();
+
+Identifier.setPattern(
+  apply(
+    tok(TokenKind.Identifier),
+    (token): ast.Identifier => ({
+      kind: SyntaxKind.Identifier,
+      name: token.text,
+    })
+  )
+);
 
 UnaryExpression.setPattern(apply(seq(tok(TokenKind.Minus), Term), applyUnary));
 
 Term.setPattern(
   alt(
     apply(tok(TokenKind.Number), applyNumber),
+    Identifier,
     UnaryExpression,
     kmid(str("("), Expression, str(")"))
   )
@@ -163,4 +175,3 @@ Expression.setPattern(AdditiveExpression);
 export function parse(expr: string) {
   return Expression.parse(lexer.parse(expr));
 }
-
