@@ -9,6 +9,7 @@ import {
   list_sc,
   lrec_sc,
   opt_sc,
+  rep_sc,
   rule,
   seq,
   str,
@@ -27,6 +28,7 @@ const LeftHandSideExpression = rule<TokenKind, ast.Expression>();
 
 const UnaryExpression = rule<TokenKind, ast.UnaryExpression>();
 const MultiplicativeExpression = rule<TokenKind, ast.Expression>();
+const PowerExpression = rule<TokenKind, ast.Expression>();
 const AdditiveExpression = rule<TokenKind, ast.Expression>();
 const AssignmentExpression = rule<TokenKind, ast.Expression>();
 const VariableDeclaration = rule<TokenKind, ast.VariableDeclaration>();
@@ -70,7 +72,7 @@ UnaryExpression.setPattern(
 );
 
 // TODO: Object access
-LeftHandSideExpression.setPattern(Identifier);
+LeftHandSideExpression.setPattern(Term);
 
 Term.setPattern(
   alt(
@@ -81,10 +83,57 @@ Term.setPattern(
   )
 );
 
+PowerExpression.setPattern(
+  apply(
+    seq(Term, rep_sc(seq(tok(TokenKind.AsteriskAsterisk), AdditiveExpression))),
+    ([left, right]): ast.Expression => {
+      if (right.length === 0) {
+        return left;
+      }
+
+      return right.reduce(
+        (acc, [operator, operand]) => ({
+          kind: SyntaxKind.BinaryExpression,
+          operator: operator.kind,
+          left: acc,
+          right: operand,
+        }),
+        left
+      );
+    }
+  )
+);
+
+MultiplicativeExpression.setPattern(
+  alt(
+    PowerExpression,
+    lrec_sc(
+      Term,
+      seq(alt(tok(TokenKind.Asterisk), tok(TokenKind.RightSlash)), Term),
+      (left, [operator, right]): ast.BinaryExpression => {
+        console.log({ left, operator, right });
+        return {
+          kind: SyntaxKind.BinaryExpression,
+          operator: operator.kind,
+          left,
+          right,
+        };
+      }
+    )
+  )
+);
+
 MultiplicativeExpression.setPattern(
   lrec_sc(
-    Term,
-    seq(alt(tok(TokenKind.Asterisk), tok(TokenKind.RightSlash)), Term),
+    PowerExpression,
+    seq(
+      alt(
+        tok(TokenKind.Asterisk),
+        tok(TokenKind.RightSlash),
+        tok(TokenKind.AsteriskAsterisk)
+      ),
+      Term
+    ),
     (left, [operator, right]): ast.BinaryExpression => ({
       kind: SyntaxKind.BinaryExpression,
       operator: operator.kind,

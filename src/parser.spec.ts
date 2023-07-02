@@ -133,6 +133,46 @@ describe("parser", () => {
         NumericLiteral(3)
       )
     );
+
+    expectParsed(
+      "2 ** 3",
+      BinaryExpression(
+        NumericLiteral(2),
+        TokenKind.AsteriskAsterisk,
+        NumericLiteral(3)
+      )
+    );
+
+    // 2 ^ (3 ^ 2)
+    expectParsed(
+      "2 ** 3 ** 2",
+      BinaryExpression(
+        NumericLiteral(2),
+        TokenKind.AsteriskAsterisk,
+        BinaryExpression(
+          NumericLiteral(3),
+          TokenKind.AsteriskAsterisk,
+          NumericLiteral(2)
+        )
+      )
+    );
+
+    expectParsed(
+      "1 + 2 * 2 + 1",
+      BinaryExpression(
+        BinaryExpression(
+          NumericLiteral(1),
+          TokenKind.Plus,
+          BinaryExpression(
+            NumericLiteral(2),
+            TokenKind.Asterisk,
+            NumericLiteral(2)
+          )
+        ),
+        TokenKind.Plus,
+        NumericLiteral(1)
+      )
+    );
   });
 
   it("parses identifiers", () => {
