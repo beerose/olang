@@ -1,17 +1,16 @@
 import { buildLexer } from "typescript-parsec";
 
-
 export enum TokenKind {
-  Number,
-  Plus,
-  Minus,
-  Asterisk,
-  AsteriskAsterisk,
-  RightSlash,
-  LeftParen,
-  RightParen,
-  Space,
-  Identifier
+  Number = "n",
+  Plus = "+",
+  Minus = "-",
+  Asterisk = "*",
+  AsteriskAsterisk = "**",
+  RightSlash = "/",
+  LeftParen = "(",
+  RightParen = ")",
+  Space = " ",
+  Identifier = "i",
 }
 
 export type OperatorTokenKind =

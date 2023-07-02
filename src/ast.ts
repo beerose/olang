@@ -1,15 +1,14 @@
 import { TokenKind } from "./lexer";
 
 export enum SyntaxKind {
-  BinaryExpression,
-  UnaryExpression,
-  NumericLiteral,
+  BinaryExpression = "b",
+  UnaryExpression = "u",
+  NumericLiteral = "n",
 }
 
 export interface BaseNode {
   kind: SyntaxKind;
 }
-
 
 export interface NumericLiteral extends BaseNode {
   kind: SyntaxKind.NumericLiteral;

@@ -2,6 +2,7 @@ import {
   Token,
   alt,
   apply,
+  kmid,
   lrec_sc,
   rule,
   seq,
@@ -118,10 +119,14 @@ const UnaryExpression = rule<TokenKind, ast.UnaryExpression>();
 const MultiplicativeExpression = rule<TokenKind, ast.Expression>();
 const AdditiveExpression = rule<TokenKind, ast.Expression>();
 
-Term.setPattern(apply(tok(TokenKind.Number), applyNumber));
+UnaryExpression.setPattern(apply(seq(tok(TokenKind.Minus), Term), applyUnary));
 
-UnaryExpression.setPattern(
-  apply(seq(tok(TokenKind.Minus), Expression), applyUnary)
+Term.setPattern(
+  alt(
+    apply(tok(TokenKind.Number), applyNumber),
+    UnaryExpression,
+    kmid(str("("), Expression, str(")"))
+  )
 );
 
 MultiplicativeExpression.setPattern(
@@ -153,45 +158,9 @@ AdditiveExpression.setPattern(
   )
 );
 
-Expression.setPattern(alt(MultiplicativeExpression, UnaryExpression));
+Expression.setPattern(AdditiveExpression);
 
 export function parse(expr: string) {
   return Expression.parse(lexer.parse(expr));
 }
 
-//   MultiplicativeExpression = MultiplicativeExpression "*" UnaryExpression -- mul
-//                            | MultiplicativeExpression "/" UnaryExpression -- div
-//                            | MultiplicativeExpression "%" UnaryExpression -- mod
-//                            | UnaryExpression
-
-// /*
-// TERM
-//   = NUMBER
-//   = ('+' | '-') TERM
-//   = '(' EXP ')'
-// */
-// TERM.setPattern(
-//   alt(
-//       apply(tok(TokenKind.Number), applyNumber),
-//       apply(seq(alt(str('+'), str('-')), TERM), applyUnary),
-//       kmid(str('('), EXP, str(')'))
-//   )
-// );
-
-// /*
-// FACTOR
-// = TERM
-// = FACTOR ('*' | '/') TERM
-// */
-// FACTOR.setPattern(
-//   lrec_sc(TERM, seq(alt(str('*'), str('/')), TERM), applyBinary)
-// );
-
-// /*
-// EXP
-// = FACTOR
-// = EXP ('+' | '-') FACTOR
-// */
-// EXP.setPattern(
-//   lrec_sc(FACTOR, seq(alt(str('+'), str('-')), FACTOR), applyBinary)
-// );

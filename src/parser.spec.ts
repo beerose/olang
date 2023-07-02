@@ -1,14 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { expectEOF, expectSingleResult, TokenError } from "typescript-parsec";
+import { expectEOF, expectSingleResult } from "typescript-parsec";
 
 import * as parser from "./parser";
 
 import { SyntaxKind, Node } from "./ast";
 import { TokenKind } from "./lexer";
-import { NumericLiteral } from "./factory";
+import { BinaryExpression, UnaryExpression, NumericLiteral } from "./factory";
 
 const expectParsed = (expression: string, expected: Node) => {
   const results = parser.parse(expression);
+
   try {
     expect(expectSingleResult(expectEOF(results))).toStrictEqual(expected);
   } catch (err) {
@@ -21,6 +22,7 @@ const expectParsed = (expression: string, expected: Node) => {
       console.dir({ results }, { depth: 99 });
     }
 
+    console.dir({ results }, { depth: 5 });
     throw err;
   }
 };
@@ -39,29 +41,14 @@ describe("parser", () => {
   });
 
   it("parses unary expressions", () => {
-    expectParsed("-1.5", {
-      kind: SyntaxKind.UnaryExpression,
-      operator: TokenKind.Minus,
-      operand: {
-        kind: SyntaxKind.NumericLiteral,
-        value: 1.5,
-      },
-    });
+    expectParsed("-1.5", UnaryExpression(TokenKind.Minus, NumericLiteral(1.5)));
   });
 
   it("parses binary expressions", () => {
-    expectParsed("1 * 2", {
-      kind: SyntaxKind.BinaryExpression,
-      operator: TokenKind.Asterisk,
-      left: {
-        kind: SyntaxKind.NumericLiteral,
-        value: 1,
-      },
-      right: {
-        kind: SyntaxKind.NumericLiteral,
-        value: 2,
-      },
-    });
+    expectParsed(
+      "1 * 2",
+      BinaryExpression(NumericLiteral(1), TokenKind.Asterisk, NumericLiteral(2))
+    );
 
     expectParsed("1 * 2 * 3", {
       kind: SyntaxKind.BinaryExpression,
@@ -75,18 +62,63 @@ describe("parser", () => {
       right: NumericLiteral(3),
     });
 
-    // expectParsed("1 + 2 * 3", {
-    //   kind: SyntaxKind.BinaryExpression,
-    //   operator: TokenKind.Plus,
-    //   left: NumericLiteral(1),
-    //   right: {
-    //     kind: SyntaxKind.BinaryExpression,
-    //     operator: TokenKind.Asterisk,
-    //     left: NumericLiteral(2),
-    //     right: NumericLiteral(3),
-    //   },
-    // });
+    expectParsed(
+      "1 + 2 * 3",
+      BinaryExpression(
+        NumericLiteral(1),
+        TokenKind.Plus,
+        BinaryExpression(
+          NumericLiteral(2),
+          TokenKind.Asterisk,
+          NumericLiteral(3)
+        )
+      )
+    );
 
-    expectParsed("1 * 2 + 3", )
+    expectParsed(
+      "1 * 2 + 3",
+      BinaryExpression(
+        BinaryExpression(
+          NumericLiteral(1),
+          TokenKind.Asterisk,
+          NumericLiteral(2)
+        ),
+        TokenKind.Plus,
+        NumericLiteral(3)
+      )
+    );
+
+    expectParsed(
+      "-1 * 2",
+      BinaryExpression(
+        UnaryExpression(TokenKind.Minus, NumericLiteral(1)),
+        TokenKind.Asterisk,
+        NumericLiteral(2)
+      )
+    );
   });
+
+  it("parses parentheses", () => {
+    expectParsed("(1)", NumericLiteral(1));
+
+    expectParsed("(1 + 2)", BinaryExpression(NumericLiteral(1), TokenKind.Plus, NumericLiteral(2)));
+
+    expectParsed(
+      "1 * (2 + 3)",
+      BinaryExpression(
+        NumericLiteral(1),
+        TokenKind.Asterisk,
+        BinaryExpression(NumericLiteral(2), TokenKind.Plus, NumericLiteral(3))
+      )
+    );
+
+    expectParsed(
+      "(1 + 2) * 3",
+      BinaryExpression(
+        BinaryExpression(NumericLiteral(1), TokenKind.Plus, NumericLiteral(2)),
+        TokenKind.Asterisk,
+        NumericLiteral(3)
+      )
+    );
+  })
 });
