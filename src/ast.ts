@@ -20,6 +20,7 @@ export interface BinaryExpression extends BaseNode {
   kind: SyntaxKind.BinaryExpression;
   left: Expression;
   operator:
+    | TokenKind.Equals
     | TokenKind.Plus
     | TokenKind.Minus
     | TokenKind.Asterisk

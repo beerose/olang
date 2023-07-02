@@ -2,6 +2,7 @@ import { buildLexer } from "typescript-parsec";
 
 export enum TokenKind {
   Number = "n",
+  Equals = "=",
   Plus = "+",
   Minus = "-",
   Asterisk = "*",
@@ -14,6 +15,7 @@ export enum TokenKind {
 }
 
 export type OperatorTokenKind =
+  | TokenKind.Equals
   | TokenKind.Plus
   | TokenKind.Minus
   | TokenKind.Asterisk
@@ -23,6 +25,7 @@ export type OperatorTokenKind =
 
 export const lexer = buildLexer([
   [true, /^\d+(\.\d+)?/g, TokenKind.Number],
+  [true, /^\=/g, TokenKind.Equals],
   [true, /^\+/g, TokenKind.Plus],
   [true, /^\-/g, TokenKind.Minus],
   [true, /^\*/g, TokenKind.Asterisk],

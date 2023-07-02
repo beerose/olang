@@ -96,29 +96,27 @@ import * as ts from "typescript";
 
 const Expression = rule<TokenKind, ast.Expression>();
 
-function applyNumber(value: Token<TokenKind.Number>): ast.NumericLiteral {
-  return {
-    kind: SyntaxKind.NumericLiteral,
-    value: parseFloat(value.text),
-  };
-}
-
-function applyUnary([operator, operand]: [
-  operator: Token<TokenKind.Minus>,
-  operand: ast.Expression
-]): ast.UnaryExpression {
-  return {
-    kind: SyntaxKind.UnaryExpression,
-    operator: operator.kind,
-    operand: operand,
-  };
-}
-
+const NumericLiteral = rule<TokenKind, ast.NumericLiteral>();
+const Identifier = rule<TokenKind, ast.Identifier>();
 const Term = rule<TokenKind, ast.Expression>();
+const LeftHandSideExpression = rule<TokenKind, ast.Expression>();
+
 const UnaryExpression = rule<TokenKind, ast.UnaryExpression>();
 const MultiplicativeExpression = rule<TokenKind, ast.Expression>();
 const AdditiveExpression = rule<TokenKind, ast.Expression>();
-const Identifier = rule<TokenKind, ast.Identifier>();
+const AssignmentExpression = rule<TokenKind, ast.Expression>();
+
+NumericLiteral.setPattern(
+  apply(
+    tok(TokenKind.Number),
+    (value: Token<TokenKind.Number>): ast.NumericLiteral => {
+      return {
+        kind: SyntaxKind.NumericLiteral,
+        value: parseFloat(value.text),
+      };
+    }
+  )
+);
 
 Identifier.setPattern(
   apply(
@@ -130,11 +128,23 @@ Identifier.setPattern(
   )
 );
 
-UnaryExpression.setPattern(apply(seq(tok(TokenKind.Minus), Term), applyUnary));
+UnaryExpression.setPattern(
+  apply(
+    seq(tok(TokenKind.Minus), Term),
+    ([operator, operand]): ast.UnaryExpression => ({
+      kind: SyntaxKind.UnaryExpression,
+      operator: operator.kind,
+      operand: operand,
+    })
+  )
+);
+
+// TODO: Object access
+LeftHandSideExpression.setPattern(Identifier);
 
 Term.setPattern(
   alt(
-    apply(tok(TokenKind.Number), applyNumber),
+    NumericLiteral,
     Identifier,
     UnaryExpression,
     kmid(str("("), Expression, str(")"))
@@ -170,7 +180,20 @@ AdditiveExpression.setPattern(
   )
 );
 
-Expression.setPattern(AdditiveExpression);
+AssignmentExpression.setPattern(
+  lrec_sc(
+    AdditiveExpression,
+    seq(tok(TokenKind.Equals), AdditiveExpression),
+    (left, [operator, right]): ast.BinaryExpression => ({
+      kind: SyntaxKind.BinaryExpression,
+      operator: operator.kind,
+      left,
+      right,
+    })
+  )
+);
+
+Expression.setPattern(AssignmentExpression);
 
 export function parse(expr: string) {
   return Expression.parse(lexer.parse(expr));

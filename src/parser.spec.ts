@@ -49,7 +49,7 @@ describe("parser", () => {
     expectParsed("-1.5", UnaryExpression(TokenKind.Minus, NumericLiteral(1.5)));
   });
 
-  it("parses binary expressions", () => {
+  it("parses arithmetic expressions", () => {
     expectParsed(
       "1 * 2",
       BinaryExpression(NumericLiteral(1), TokenKind.Asterisk, NumericLiteral(2))
@@ -181,5 +181,16 @@ describe("parser", () => {
         Identifier("c")
       )
     );
+  });
+
+  it("parses assignments", () => {
+    expectParsed(
+      "a = 1",
+      BinaryExpression(Identifier("a"), TokenKind.Equals, NumericLiteral(1))
+    );
+  });
+
+  it("parses variable declarations", () => {
+    // expectParsed('let a = 1', )
   });
 });
