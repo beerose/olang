@@ -111,6 +111,8 @@ const VariableDeclaration = rule<TokenKind, ast.VariableDeclaration>();
 const FunctionParametersDeclaration = rule<TokenKind, ast.FunctionParameters>();
 const FunctionDeclaration = rule<TokenKind, ast.FunctionExpression>();
 const Block = rule<TokenKind, ast.Block>();
+const FunctionCall = rule<TokenKind, ast.FunctionCall>();
+const FunctionCallArguments = rule<TokenKind, ast.Expression[]>();
 
 NumericLiteral.setPattern(
   apply(
@@ -268,7 +270,7 @@ FunctionDeclaration.setPattern(
       Identifier,
       FunctionParametersDeclaration,
       tok(TokenKind.Equals),
-      alt(Expression, Block)
+      Expression
     ),
     ([, identifier, parameters, , body]): ast.FunctionExpression => ({
       kind: SyntaxKind.Function,
@@ -279,8 +281,43 @@ FunctionDeclaration.setPattern(
   )
 );
 
+FunctionCallArguments.setPattern(
+  apply(
+    seq(
+      tok(TokenKind.LeftParen),
+      opt_sc(
+        kleft(
+          list_sc(opt_sc(Expression), tok(TokenKind.Comma)),
+          opt_sc(tok(TokenKind.Comma))
+        )
+      ),
+      tok(TokenKind.RightParen)
+    ),
+    ([, parameters = []]): ast.Expression[] => {
+      return parameters.filter((e): e is ast.Expression => !!e);
+    }
+  )
+);
+
+FunctionCall.setPattern(
+  apply(
+    seq(Identifier, FunctionCallArguments),
+    ([identifier, parameters]): ast.FunctionCall => ({
+      kind: SyntaxKind.FunctionCall,
+      name: identifier,
+      arguments: parameters,
+    })
+  )
+);
+
 Expression.setPattern(
-  alt(VariableDeclaration, AssignmentExpression, FunctionDeclaration)
+  alt(
+    VariableDeclaration,
+    AssignmentExpression,
+    FunctionDeclaration,
+    Block,
+    FunctionCall
+  )
 );
 
 export function parse(expr: string) {

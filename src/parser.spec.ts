@@ -14,6 +14,7 @@ import {
   FunctionExpression,
   FunctionParameters,
   Block,
+  FunctionCallExpression,
 } from "./factory";
 
 const expectParsed = (expression: string, expected: Node) => {
@@ -283,6 +284,54 @@ describe("parser", () => {
           BinaryExpression(Identifier("b"), TokenKind.Minus, Identifier("c")),
         ])
       )
+    );
+  });
+
+  it("parses function calls", () => {
+    expectParsed("a()", FunctionCallExpression(Identifier("a"), []));
+
+    expectParsed(
+      "a(b)",
+      FunctionCallExpression(Identifier("a"), [Identifier("b")])
+    );
+
+    expectParsed(
+      "a(b, c)",
+      FunctionCallExpression(Identifier("a"), [
+        Identifier("b"),
+        Identifier("c"),
+      ])
+    );
+
+    expectParsed(
+      "a(b, c, d)",
+      FunctionCallExpression(Identifier("a"), [
+        Identifier("b"),
+        Identifier("c"),
+        Identifier("d"),
+      ])
+    );
+
+    expectParsed(
+      "a(1 + 2)",
+      FunctionCallExpression(Identifier("a"), [
+        BinaryExpression(NumericLiteral(1), TokenKind.Plus, NumericLiteral(2)),
+      ])
+    );
+
+    expectParsed(
+      "a(b + c)",
+      FunctionCallExpression(Identifier("a"), [
+        BinaryExpression(Identifier("b"), TokenKind.Plus, Identifier("c")),
+      ])
+    );
+
+    expectParsed(
+      "a(b, c + d)",
+      FunctionCallExpression(Identifier("a"), [
+        Identifier("b"),
+        BinaryExpression(Identifier("c"), TokenKind.Plus, Identifier("d")),
+      ])
     );
   });
 });

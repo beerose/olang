@@ -78,3 +78,14 @@ export function Block(statements: ast.Expression[]): ast.Block {
     statements,
   } as const;
 }
+
+export function FunctionCallExpression(
+  name: ast.Identifier,
+  args: ast.Expression[]
+): ast.FunctionCall {
+  return {
+    kind: ast.SyntaxKind.FunctionCall,
+    name,
+    arguments: args,
+  } as const;
+}

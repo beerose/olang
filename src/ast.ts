@@ -8,6 +8,7 @@ export enum SyntaxKind {
   VariableDeclaration = "v",
   Function = "f",
   FunctionParameters = "p",
+  FunctionCall = "c",
   Block = "block",
 }
 
@@ -51,7 +52,9 @@ export type Expression =
   | UnaryExpression
   | Identifier
   | VariableDeclaration
-  | FunctionExpression;
+  | FunctionExpression
+  | Block
+  | FunctionCall;
 
 export interface VariableDeclaration extends BaseNode {
   kind: SyntaxKind.VariableDeclaration;
@@ -74,6 +77,12 @@ export interface Block extends BaseNode {
 export interface FunctionParameters extends BaseNode {
   kind: SyntaxKind.FunctionParameters;
   parameters: Identifier[];
+}
+
+export interface FunctionCall extends BaseNode {
+  kind: SyntaxKind.FunctionCall;
+  name: Identifier;
+  arguments: Expression[];
 }
 
 export type Node = Expression;
