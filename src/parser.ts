@@ -2,6 +2,8 @@ import {
   Token,
   alt,
   apply,
+  expectEOF,
+  expectSingleResult,
   kleft,
   kmid,
   list_sc,
@@ -15,86 +17,6 @@ import {
 import { TokenKind, lexer } from "./lexer";
 import type * as ast from "./ast";
 import { SyntaxKind } from "./ast";
-
-// PostfixExpression = LeftHandSideExpression #(spacesNoNL "++")  -- postIncrement
-//                     | LeftHandSideExpression #(spacesNoNL "--")  -- postDecrement
-//                     | LeftHandSideExpression
-
-//   UnaryExpression = delete UnaryExpression  -- deleteExp
-//                   | void   UnaryExpression  -- voidExp
-//                   | typeof UnaryExpression  -- typeofExp
-//                   | "++"   UnaryExpression  -- preIncrement
-//                   | "--"   UnaryExpression  -- preDecrement
-//                   | "+"    UnaryExpression  -- unaryPlus
-//                   | "-"    UnaryExpression  -- unaryMinus
-//                   | "~"    UnaryExpression  -- bnot
-//                   | "!"    UnaryExpression  -- lnot
-//                   | PostfixExpression
-
-//   MultiplicativeExpression = MultiplicativeExpression "*" UnaryExpression -- mul
-//                            | MultiplicativeExpression "/" UnaryExpression -- div
-//                            | MultiplicativeExpression "%" UnaryExpression -- mod
-//                            | UnaryExpression
-
-//   AdditiveExpression = AdditiveExpression "+" MultiplicativeExpression -- add
-//                      | AdditiveExpression "-" MultiplicativeExpression -- sub
-//                      | MultiplicativeExpression
-
-//   ShiftExpression = ShiftExpression "<<" AdditiveExpression  -- lsl
-//                   | ShiftExpression ">>>" AdditiveExpression -- lsr
-//                   | ShiftExpression ">>" AdditiveExpression  -- asr
-//                   | AdditiveExpression
-
-//   RelationalExpression<guardIn>
-//     = RelationalExpression<guardIn> "<" ShiftExpression           -- lt
-//     | RelationalExpression<guardIn> ">" ShiftExpression           -- gt
-//     | RelationalExpression<guardIn> "<=" ShiftExpression          -- le
-//     | RelationalExpression<guardIn> ">=" ShiftExpression          -- ge
-//     | RelationalExpression<guardIn> "instanceof" ShiftExpression  -- instanceOfExp
-//     | RelationalExpression<guardIn> guardIn "in" ShiftExpression  -- inExp
-//     | ShiftExpression
-
-//   EqualityExpression<guardIn>
-//     = EqualityExpression<guardIn> "==" RelationalExpression<guardIn>  -- equal
-//     | EqualityExpression<guardIn> "!=" RelationalExpression<guardIn>  -- notEqual
-//     | EqualityExpression<guardIn> "===" RelationalExpression<guardIn> -- eq
-//     | EqualityExpression<guardIn> "!==" RelationalExpression<guardIn> -- notEq
-//     | RelationalExpression<guardIn>
-
-//   BitwiseANDExpression<guardIn>
-//     = BitwiseANDExpression<guardIn> "&" EqualityExpression<guardIn> -- band
-//     | EqualityExpression<guardIn>
-
-//   BitwiseXORExpression<guardIn>
-//     = BitwiseXORExpression<guardIn> "^" BitwiseANDExpression<guardIn> -- bxor
-//     | BitwiseANDExpression<guardIn>
-
-//   BitwiseORExpression<guardIn>
-//     = BitwiseORExpression<guardIn> "|" BitwiseXORExpression<guardIn> -- bor
-//     | BitwiseXORExpression<guardIn>
-
-//   LogicalANDExpression<guardIn>
-//     = LogicalANDExpression<guardIn> "&&" BitwiseORExpression<guardIn> -- land
-//     | BitwiseORExpression<guardIn>
-
-//   LogicalORExpression<guardIn>
-//     = LogicalORExpression<guardIn> "||" LogicalANDExpression<guardIn> -- lor
-//     | LogicalANDExpression<guardIn>
-
-//   ConditionalExpression<guardIn>
-//     = LogicalORExpression<guardIn> "?" AssignmentExpression<withIn> ":" AssignmentExpression<guardIn> -- conditional
-//     | LogicalORExpression<guardIn>
-
-//   AssignmentExpression<guardIn>
-//     = LeftHandSideExpression assignmentOperator AssignmentExpression<guardIn> -- assignment
-//     | ConditionalExpression<guardIn>
-
-//   Expression<guardIn> (an expression)
-//     = Expression<guardIn> "," AssignmentExpression<guardIn> -- commaExp
-//     | AssignmentExpression<guardIn>
-
-//   assignmentOperator = "=" | ">>>=" | "<<=" | ">>="
-//                      | "*=" | "/=" | "%=" | "+=" | "-=" | "&=" | "^=" | "|="
 
 const Expression = rule<TokenKind, ast.Expression>();
 
@@ -312,14 +234,18 @@ FunctionCall.setPattern(
 
 Expression.setPattern(
   alt(
+    FunctionCall,
     VariableDeclaration,
     AssignmentExpression,
     FunctionDeclaration,
-    Block,
-    FunctionCall
+    Block
   )
 );
 
 export function parse(expr: string) {
   return Expression.parse(lexer.parse(expr));
+}
+
+export function printAST(expr: string) {
+  return expectSingleResult(expectEOF(parse(expr)));
 }

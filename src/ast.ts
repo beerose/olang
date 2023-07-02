@@ -1,15 +1,15 @@
 import { TokenKind } from "./lexer";
 
 export enum SyntaxKind {
-  BinaryExpression = "b",
-  UnaryExpression = "u",
-  NumericLiteral = "n",
-  Identifier = "i",
-  VariableDeclaration = "v",
-  Function = "f",
-  FunctionParameters = "p",
-  FunctionCall = "c",
-  Block = "block",
+  BinaryExpression = "BinaryExpression",
+  UnaryExpression = "UnaryExpression",
+  NumericLiteral = "NumericLiteral",
+  Identifier = "Identifier",
+  VariableDeclaration = "VariableDeclaration",
+  Function = "Function",
+  FunctionParameters = "FunctionParameters",
+  FunctionCall = "FunctionCall",
+  Block = "Block",
 }
 
 export interface BaseNode {
