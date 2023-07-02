@@ -1,0 +1,19 @@
+{
+  "name": "olang",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@tsconfig/strictest": "^2.0.1",
+    "typescript": "^5.1.6",
+    "typescript-parsec": "^0.3.4",
+    "vitest": "^0.32.2"
+  }
+}
