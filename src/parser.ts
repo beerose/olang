@@ -2,8 +2,11 @@ import {
   Token,
   alt,
   apply,
+  kleft,
   kmid,
+  list_sc,
   lrec_sc,
+  opt_sc,
   rule,
   seq,
   str,
@@ -12,7 +15,6 @@ import {
 import { TokenKind, lexer } from "./lexer";
 import type * as ast from "./ast";
 import { SyntaxKind } from "./ast";
-import * as ts from "typescript";
 
 // PostfixExpression = LeftHandSideExpression #(spacesNoNL "++")  -- postIncrement
 //                     | LeftHandSideExpression #(spacesNoNL "--")  -- postDecrement
@@ -106,6 +108,9 @@ const MultiplicativeExpression = rule<TokenKind, ast.Expression>();
 const AdditiveExpression = rule<TokenKind, ast.Expression>();
 const AssignmentExpression = rule<TokenKind, ast.Expression>();
 const VariableDeclaration = rule<TokenKind, ast.VariableDeclaration>();
+const FunctionParametersDeclaration = rule<TokenKind, ast.FunctionParameters>();
+const FunctionDeclaration = rule<TokenKind, ast.FunctionExpression>();
+const Block = rule<TokenKind, ast.Block>();
 
 NumericLiteral.setPattern(
   apply(
@@ -210,7 +215,73 @@ VariableDeclaration.setPattern(
   )
 );
 
-Expression.setPattern(alt(VariableDeclaration, AssignmentExpression));
+FunctionParametersDeclaration.setPattern(
+  apply(
+    seq(
+      tok(TokenKind.LeftParen),
+      opt_sc(
+        kleft(
+          list_sc(opt_sc(tok(TokenKind.Identifier)), tok(TokenKind.Comma)),
+          opt_sc(tok(TokenKind.Comma))
+        )
+      ),
+      tok(TokenKind.RightParen)
+    ),
+    ([_, parameters = []]): ast.FunctionParameters => {
+      const parametersList = parameters
+        .map((parameter) => parameter?.text)
+        .filter((p): p is string => !!p);
+      return {
+        kind: SyntaxKind.FunctionParameters,
+        parameters: parametersList.map((parameter) => ({
+          kind: SyntaxKind.Identifier,
+          name: parameter,
+        })),
+      };
+    }
+  )
+);
+
+Block.setPattern(
+  apply(
+    seq(
+      tok(TokenKind.LeftBrace),
+      opt_sc(
+        kleft(
+          list_sc(opt_sc(Expression), tok(TokenKind.Semicolon)),
+          opt_sc(tok(TokenKind.Semicolon))
+        )
+      ),
+      tok(TokenKind.RightBrace)
+    ),
+    ([, expressions = []]): ast.Block => ({
+      kind: SyntaxKind.Block,
+      statements: expressions.filter((e): e is ast.Expression => !!e),
+    })
+  )
+);
+
+FunctionDeclaration.setPattern(
+  apply(
+    seq(
+      tok(TokenKind.FuncKeyword),
+      Identifier,
+      FunctionParametersDeclaration,
+      tok(TokenKind.Equals),
+      alt(Expression, Block)
+    ),
+    ([, identifier, parameters, , body]): ast.FunctionExpression => ({
+      kind: SyntaxKind.Function,
+      name: identifier,
+      parameters,
+      body,
+    })
+  )
+);
+
+Expression.setPattern(
+  alt(VariableDeclaration, AssignmentExpression, FunctionDeclaration)
+);
 
 export function parse(expr: string) {
   return Expression.parse(lexer.parse(expr));

@@ -49,3 +49,32 @@ export function VariableDeclaration(
     initializer,
   } as const;
 }
+
+export function FunctionExpression(
+  name: ast.Identifier,
+  parameters: ast.FunctionParameters,
+  body: ast.Block | ast.Expression
+): ast.FunctionExpression {
+  return {
+    kind: ast.SyntaxKind.Function,
+    name,
+    parameters,
+    body,
+  } as const;
+}
+
+export function FunctionParameters(
+  parameters: ast.Identifier[]
+): ast.FunctionParameters {
+  return {
+    kind: ast.SyntaxKind.FunctionParameters,
+    parameters,
+  } as const;
+}
+
+export function Block(statements: ast.Expression[]): ast.Block {
+  return {
+    kind: ast.SyntaxKind.Block,
+    statements,
+  } as const;
+}

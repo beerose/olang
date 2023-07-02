@@ -88,4 +88,55 @@ describe("lexer", () => {
     token = token.next;
     assert.strictEqual(token, undefined);
   });
+
+  it("handles function declaration", () => {
+    let token = lexer.parse("func f(a, b) = a + b");
+
+    token = notUndefined(token);
+    assert.strictEqual(token.kind, TokenKind.FuncKeyword);
+    assert.strictEqual(token.text, "func");
+
+    token = notUndefined(token.next);
+    assert.strictEqual(token.kind, TokenKind.Identifier);
+    assert.strictEqual(token.text, "f");
+
+    token = notUndefined(token.next);
+    assert.strictEqual(token.kind, TokenKind.LeftParen);
+    assert.strictEqual(token.text, "(");
+
+    token = notUndefined(token.next);
+    assert.strictEqual(token.kind, TokenKind.Identifier);
+    assert.strictEqual(token.text, "a");
+
+    token = notUndefined(token.next);
+    assert.strictEqual(token.kind, TokenKind.Comma);
+    assert.strictEqual(token.text, ",");
+
+    token = notUndefined(token.next);
+    assert.strictEqual(token.kind, TokenKind.Identifier);
+    assert.strictEqual(token.text, "b");
+
+    token = notUndefined(token.next);
+    assert.strictEqual(token.kind, TokenKind.RightParen);
+    assert.strictEqual(token.text, ")");
+
+    token = notUndefined(token.next);
+    assert.strictEqual(token.kind, TokenKind.Equals);
+    assert.strictEqual(token.text, "=");
+
+    token = notUndefined(token.next);
+    assert.strictEqual(token.kind, TokenKind.Identifier);
+    assert.strictEqual(token.text, "a");
+
+    token = notUndefined(token.next);
+    assert.strictEqual(token.kind, TokenKind.Plus);
+    assert.strictEqual(token.text, "+");
+
+    token = notUndefined(token.next);
+    assert.strictEqual(token.kind, TokenKind.Identifier);
+    assert.strictEqual(token.text, "b");
+
+    token = token.next;
+    assert.strictEqual(token, undefined);
+  });
 });

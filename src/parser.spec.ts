@@ -11,6 +11,9 @@ import {
   NumericLiteral,
   Identifier,
   VariableDeclaration,
+  FunctionExpression,
+  FunctionParameters,
+  Block,
 } from "./factory";
 
 const expectParsed = (expression: string, expected: Node) => {
@@ -218,6 +221,67 @@ describe("parser", () => {
             NumericLiteral(3)
           )
         )
+      )
+    );
+  });
+
+  it("parses function declarations", () => {
+    expectParsed(
+      "func a() = 1",
+      FunctionExpression(
+        Identifier("a"),
+        FunctionParameters([]),
+        NumericLiteral(1)
+      )
+    );
+
+    expectParsed(
+      "func a(b) = 1",
+      FunctionExpression(
+        Identifier("a"),
+        FunctionParameters([Identifier("b")]),
+        NumericLiteral(1)
+      )
+    );
+
+    expectParsed(
+      "func a(b, c) = 1",
+      FunctionExpression(
+        Identifier("a"),
+        FunctionParameters([Identifier("b"), Identifier("c")]),
+        NumericLiteral(1)
+      )
+    );
+
+    expectParsed(
+      "func a(b, c) = b + c",
+      FunctionExpression(
+        Identifier("a"),
+        FunctionParameters([Identifier("b"), Identifier("c")]),
+        BinaryExpression(Identifier("b"), TokenKind.Plus, Identifier("c"))
+      )
+    );
+
+    expectParsed(
+      "func a(b, c) = { b + c }",
+      FunctionExpression(
+        Identifier("a"),
+        FunctionParameters([Identifier("b"), Identifier("c")]),
+        Block([
+          BinaryExpression(Identifier("b"), TokenKind.Plus, Identifier("c")),
+        ])
+      )
+    );
+
+    expectParsed(
+      "func a(b, c) = { b + c; b - c }",
+      FunctionExpression(
+        Identifier("a"),
+        FunctionParameters([Identifier("b"), Identifier("c")]),
+        Block([
+          BinaryExpression(Identifier("b"), TokenKind.Plus, Identifier("c")),
+          BinaryExpression(Identifier("b"), TokenKind.Minus, Identifier("c")),
+        ])
       )
     );
   });

@@ -10,9 +10,14 @@ export enum TokenKind {
   RightSlash = "/",
   LeftParen = "(",
   RightParen = ")",
+  LeftBrace = "{",
+  RightBrace = "}",
   Space = " ",
   Identifier = "i",
   LetKeyword = "let",
+  FuncKeyword = "func",
+  Comma = ",",
+  Semicolon = ";",
 }
 
 export type OperatorTokenKind =
@@ -35,6 +40,11 @@ export const lexer = buildLexer([
   [true, /^\(/g, TokenKind.LeftParen],
   [true, /^\)/g, TokenKind.RightParen],
   [false, /^\s+/g, TokenKind.Space],
+  [true, /^\,/g, TokenKind.Comma],
+  [true, /^\;/g, TokenKind.Semicolon],
+  [true, /^\{/g, TokenKind.LeftBrace],
+  [true, /^\}/g, TokenKind.RightBrace],
   [true, /^let/g, TokenKind.LetKeyword],
+  [true, /^func/g, TokenKind.FuncKeyword],
   [true, /^[a-zA-Z_][a-zA-Z0-9_]*/g, TokenKind.Identifier],
 ]);
