@@ -55,12 +55,35 @@ describe("lexer", () => {
     assert.strictEqual(token, undefined);
   });
 
-  it("identifier", () => {
+  it("handles identifier", () => {
     let token = lexer.parse("a");
 
     token = notUndefined(token);
     assert.strictEqual(token.kind, TokenKind.Identifier);
     assert.strictEqual(token.text, "a");
+
+    token = token.next;
+    assert.strictEqual(token, undefined);
+  });
+
+  it("handles variable declaration", () => {
+    let token = lexer.parse("let a = 1");
+
+    token = notUndefined(token);
+    assert.strictEqual(token.kind, TokenKind.LetKeyword);
+    assert.strictEqual(token.text, "let");
+
+    token = notUndefined(token.next);
+    assert.strictEqual(token.kind, TokenKind.Identifier);
+    assert.strictEqual(token.text, "a");
+
+    token = notUndefined(token.next);
+    assert.strictEqual(token.kind, TokenKind.Equals);
+    assert.strictEqual(token.text, "=");
+
+    token = notUndefined(token.next);
+    assert.strictEqual(token.kind, TokenKind.Number);
+    assert.strictEqual(token.text, "1");
 
     token = token.next;
     assert.strictEqual(token, undefined);

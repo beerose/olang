@@ -12,6 +12,7 @@ export enum TokenKind {
   RightParen = ")",
   Space = " ",
   Identifier = "i",
+  LetKeyword = "let",
 }
 
 export type OperatorTokenKind =
@@ -33,6 +34,7 @@ export const lexer = buildLexer([
   [true, /^\//g, TokenKind.RightSlash],
   [true, /^\(/g, TokenKind.LeftParen],
   [true, /^\)/g, TokenKind.RightParen],
-  [true, /^[a-zA-Z_][a-zA-Z0-9_]*/g, TokenKind.Identifier],
   [false, /^\s+/g, TokenKind.Space],
+  [true, /^let/g, TokenKind.LetKeyword],
+  [true, /^[a-zA-Z_][a-zA-Z0-9_]*/g, TokenKind.Identifier],
 ]);

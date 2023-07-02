@@ -38,3 +38,14 @@ export function Identifier(name: string): ast.Identifier {
     name,
   } as const;
 }
+
+export function VariableDeclaration(
+  name: ast.Identifier,
+  initializer: ast.Expression
+): ast.VariableDeclaration {
+  return {
+    kind: ast.SyntaxKind.VariableDeclaration,
+    name,
+    initializer,
+  } as const;
+}

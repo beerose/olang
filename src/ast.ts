@@ -5,6 +5,7 @@ export enum SyntaxKind {
   UnaryExpression = "u",
   NumericLiteral = "n",
   Identifier = "i",
+  VariableDeclaration = "v",
 }
 
 export interface BaseNode {
@@ -45,6 +46,13 @@ export type Expression =
   | NumericLiteral
   | BinaryExpression
   | UnaryExpression
-  | Identifier;
+  | Identifier
+  | VariableDeclaration;
+
+export interface VariableDeclaration extends BaseNode {
+  kind: SyntaxKind.VariableDeclaration;
+  name: Identifier;
+  initializer: Expression;
+}
 
 export type Node = Expression;

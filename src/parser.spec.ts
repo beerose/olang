@@ -10,6 +10,7 @@ import {
   UnaryExpression,
   NumericLiteral,
   Identifier,
+  VariableDeclaration,
 } from "./factory";
 
 const expectParsed = (expression: string, expected: Node) => {
@@ -191,6 +192,33 @@ describe("parser", () => {
   });
 
   it("parses variable declarations", () => {
-    // expectParsed('let a = 1', )
+    expectParsed(
+      "let a = 1",
+      VariableDeclaration(Identifier("a"), NumericLiteral(1))
+    );
+
+    expectParsed(
+      "let a = 1 + 2",
+      VariableDeclaration(
+        Identifier("a"),
+        BinaryExpression(NumericLiteral(1), TokenKind.Plus, NumericLiteral(2))
+      )
+    );
+
+    expectParsed(
+      "let a = 1 + 2 * 3",
+      VariableDeclaration(
+        Identifier("a"),
+        BinaryExpression(
+          NumericLiteral(1),
+          TokenKind.Plus,
+          BinaryExpression(
+            NumericLiteral(2),
+            TokenKind.Asterisk,
+            NumericLiteral(3)
+          )
+        )
+      )
+    );
   });
 });

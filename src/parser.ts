@@ -105,6 +105,7 @@ const UnaryExpression = rule<TokenKind, ast.UnaryExpression>();
 const MultiplicativeExpression = rule<TokenKind, ast.Expression>();
 const AdditiveExpression = rule<TokenKind, ast.Expression>();
 const AssignmentExpression = rule<TokenKind, ast.Expression>();
+const VariableDeclaration = rule<TokenKind, ast.VariableDeclaration>();
 
 NumericLiteral.setPattern(
   apply(
@@ -193,7 +194,23 @@ AssignmentExpression.setPattern(
   )
 );
 
-Expression.setPattern(AssignmentExpression);
+VariableDeclaration.setPattern(
+  apply(
+    seq(
+      tok(TokenKind.LetKeyword),
+      Identifier,
+      tok(TokenKind.Equals),
+      AssignmentExpression
+    ),
+    ([, identifier, , initializer]): ast.VariableDeclaration => ({
+      kind: SyntaxKind.VariableDeclaration,
+      name: identifier,
+      initializer,
+    })
+  )
+);
+
+Expression.setPattern(alt(VariableDeclaration, AssignmentExpression));
 
 export function parse(expr: string) {
   return Expression.parse(lexer.parse(expr));
