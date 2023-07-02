@@ -9,7 +9,6 @@ import {
   list_sc,
   lrec_sc,
   opt_sc,
-  rep_sc,
   rule,
   seq,
   str,
@@ -33,7 +32,7 @@ const AdditiveExpression = rule<TokenKind, ast.Expression>();
 const AssignmentExpression = rule<TokenKind, ast.Expression>();
 const VariableDeclaration = rule<TokenKind, ast.VariableDeclaration>();
 const FunctionParametersDeclaration = rule<TokenKind, ast.FunctionParameters>();
-const FunctionDeclaration = rule<TokenKind, ast.FunctionExpression>();
+const FunctionExpression = rule<TokenKind, ast.FunctionExpression>();
 const Block = rule<TokenKind, ast.Block>();
 const FunctionCall = rule<TokenKind, ast.FunctionCall>();
 const FunctionCallArguments = rule<TokenKind, ast.Expression[]>();
@@ -153,7 +152,7 @@ VariableDeclaration.setPattern(
       tok(TokenKind.LetKeyword),
       Identifier,
       tok(TokenKind.Equals),
-      AssignmentExpression
+      alt(AssignmentExpression, FunctionExpression)
     ),
     ([, identifier, , initializer]): ast.VariableDeclaration => ({
       kind: SyntaxKind.VariableDeclaration,
@@ -209,18 +208,15 @@ Block.setPattern(
   )
 );
 
-FunctionDeclaration.setPattern(
+FunctionExpression.setPattern(
   apply(
     seq(
-      tok(TokenKind.FuncKeyword),
-      Identifier,
       FunctionParametersDeclaration,
-      tok(TokenKind.Equals),
-      Expression
+      tok(TokenKind.Arrow),
+      alt(Block, Expression)
     ),
-    ([, identifier, parameters, , body]): ast.FunctionExpression => ({
+    ([parameters, , body]): ast.FunctionExpression => ({
       kind: SyntaxKind.Function,
-      name: identifier,
       parameters,
       body,
     })
@@ -261,8 +257,7 @@ Expression.setPattern(
     FunctionCall,
     VariableDeclaration,
     AssignmentExpression,
-    FunctionDeclaration,
-    Block
+    FunctionExpression
   )
 );
 

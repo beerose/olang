@@ -277,47 +277,42 @@ describe("parser", () => {
     );
   });
 
-  it("parses function declarations", () => {
+  it("parses function expression", () => {
     expectParsed(
-      "func a() = 1",
+      "() => 1 + 2 ",
       FunctionExpression(
-        Identifier("a"),
         FunctionParameters([]),
-        NumericLiteral(1)
+        BinaryExpression(NumericLiteral(1), TokenKind.Plus, NumericLiteral(2))
       )
     );
 
     expectParsed(
-      "func a(b) = 1",
+      "(b) => 1",
       FunctionExpression(
-        Identifier("a"),
         FunctionParameters([Identifier("b")]),
         NumericLiteral(1)
       )
     );
 
     expectParsed(
-      "func a(b, c) = 1",
+      "(b, c) => 1",
       FunctionExpression(
-        Identifier("a"),
         FunctionParameters([Identifier("b"), Identifier("c")]),
         NumericLiteral(1)
       )
     );
 
     expectParsed(
-      "func a(b, c) = b + c",
+      "(b, c) => b + c",
       FunctionExpression(
-        Identifier("a"),
         FunctionParameters([Identifier("b"), Identifier("c")]),
         BinaryExpression(Identifier("b"), TokenKind.Plus, Identifier("c"))
       )
     );
 
     expectParsed(
-      "func a(b, c) = { b + c }",
+      "(b, c) => { b + c }",
       FunctionExpression(
-        Identifier("a"),
         FunctionParameters([Identifier("b"), Identifier("c")]),
         Block([
           BinaryExpression(Identifier("b"), TokenKind.Plus, Identifier("c")),
@@ -326,14 +321,61 @@ describe("parser", () => {
     );
 
     expectParsed(
-      "func a(b, c) = { b + c; b - c }",
+      "(b, c) => { b + c; b - c }",
       FunctionExpression(
-        Identifier("a"),
         FunctionParameters([Identifier("b"), Identifier("c")]),
         Block([
           BinaryExpression(Identifier("b"), TokenKind.Plus, Identifier("c")),
           BinaryExpression(Identifier("b"), TokenKind.Minus, Identifier("c")),
         ])
+      )
+    );
+
+    expectParsed(
+      "(b, c) => { let x = b + c; x }",
+      FunctionExpression(
+        FunctionParameters([Identifier("b"), Identifier("c")]),
+        Block([
+          VariableDeclaration(
+            Identifier("x"),
+            BinaryExpression(Identifier("b"), TokenKind.Plus, Identifier("c"))
+          ),
+          Identifier("x"),
+        ])
+      )
+    );
+  });
+
+  it("parses function declarations", () => {
+    expectParsed(
+      "let a = () => 1",
+      VariableDeclaration(
+        Identifier("a"),
+        FunctionExpression(FunctionParameters([]), NumericLiteral(1))
+      )
+    );
+
+    expectParsed(
+      "let a = (b) => 1",
+      VariableDeclaration(
+        Identifier("a"),
+        FunctionExpression(
+          FunctionParameters([Identifier("b")]),
+          NumericLiteral(1)
+        )
+      )
+    );
+
+    expectParsed(
+      "let a = (b, c) => { b + c }",
+      VariableDeclaration(
+        Identifier("a"),
+        FunctionExpression(
+          FunctionParameters([Identifier("b"), Identifier("c")]),
+          Block([
+            BinaryExpression(Identifier("b"), TokenKind.Plus, Identifier("c")),
+          ])
+        )
       )
     );
   });

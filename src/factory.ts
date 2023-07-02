@@ -51,13 +51,11 @@ export function VariableDeclaration(
 }
 
 export function FunctionExpression(
-  name: ast.Identifier,
   parameters: ast.FunctionParameters,
-  body: ast.Block | ast.Expression
+  body: ast.Expression | ast.Block
 ): ast.FunctionExpression {
   return {
     kind: ast.SyntaxKind.Function,
-    name,
     parameters,
     body,
   } as const;

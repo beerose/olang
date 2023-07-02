@@ -54,7 +54,6 @@ export type Expression =
   | Identifier
   | VariableDeclaration
   | FunctionExpression
-  | Block
   | FunctionCall;
 
 export interface VariableDeclaration extends BaseNode {
@@ -65,7 +64,6 @@ export interface VariableDeclaration extends BaseNode {
 
 export interface FunctionExpression extends BaseNode {
   kind: SyntaxKind.Function;
-  name: Identifier;
   parameters: FunctionParameters;
   body: Block | Expression;
 }
