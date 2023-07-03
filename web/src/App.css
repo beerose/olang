@@ -2,7 +2,7 @@
   text-align: center;
   width: 100%;
   justify-content: center;
-  display: flex;
+  padding: 20px;
 }
 
 .logo {

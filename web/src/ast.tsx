@@ -7,7 +7,7 @@ const expressionColors: Record<ast.SyntaxKind, string> = {
   [ast.SyntaxKind.UnaryExpression]: "green",
   [ast.SyntaxKind.NumericLiteral]: "red",
   [ast.SyntaxKind.Identifier]: "purple",
-  [ast.SyntaxKind.VariableDeclaration]: "orange",
+  [ast.SyntaxKind.VariableDeclaration]: "midnightblue",
   [ast.SyntaxKind.Function]: "brown",
   [ast.SyntaxKind.FunctionParameters]: "pink",
   [ast.SyntaxKind.FunctionCall]: "gray",
@@ -17,8 +17,19 @@ const expressionColors: Record<ast.SyntaxKind, string> = {
 const renderNode = (node: ast.Node, indentLevel: number) => {
   const color = expressionColors[node.kind];
   return (
-    <div style={{ marginLeft: `${indentLevel * 20}px`, color }}>
-      <table style={{ border: "1px solid black", width: "100%" }}>
+    <div
+      style={{
+        marginLeft: `${indentLevel * 20}px`,
+        color,
+      }}
+    >
+      <table
+        style={{
+          border: "1px solid black",
+          width: indentLevel > 0 ? "100%" : "inherit",
+          background: "white",
+        }}
+      >
         <tbody>
           <tr>
             <td style={{ fontWeight: "bold", borderBottom: "1px solid black" }}>
@@ -81,5 +92,5 @@ export const AstViewer: React.FC<AstViewerProps> = ({ code }) => {
     }
   }, [code]);
 
-  return <div>{ast && renderNode(ast, 0)}</div>;
+  return ast ? renderNode(ast, 0) : null;
 };

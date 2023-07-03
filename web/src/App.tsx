@@ -14,8 +14,8 @@ const tokenColors: { [key in TokenKind]: string } = {
   [TokenKind.Percent]: "brown",
   [TokenKind.AsteriskAsterisk]: "pink",
   [TokenKind.RightSlash]: "lightblue",
-  [TokenKind.LeftParen]: "lightgreen",
-  [TokenKind.RightParen]: "lightgreen",
+  [TokenKind.LeftParen]: "midnightblue",
+  [TokenKind.RightParen]: "midnightblue",
   [TokenKind.LeftBrace]: "lightcoral",
   [TokenKind.RightBrace]: "lightcoral",
   [TokenKind.Space]: "black",
@@ -23,7 +23,7 @@ const tokenColors: { [key in TokenKind]: string } = {
   [TokenKind.LetKeyword]: "magenta",
   [TokenKind.Comma]: "darkblue",
   [TokenKind.Semicolon]: "darkgreen",
-  [TokenKind.Arrow]: "yellow",
+  [TokenKind.Arrow]: "slategray",
 };
 
 const tokenToDisplayName: { [key in TokenKind]: string } = {
