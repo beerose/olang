@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import "./App.css";
 
 import { lexer, TokenKind } from "../../src/lexer";
-import { Token } from "typescript-parsec";
+import { TokenError, Token } from "typescript-parsec";
 
 const tokenColors: { [key in TokenKind]: string } = {
   [TokenKind.Number]: "blue",
@@ -51,16 +51,23 @@ const App: React.FC = () => {
   const [tokens, setTokens] = useState<Token<TokenKind>[] | undefined>(
     undefined
   );
+  const [error, setError] = useState<TokenError | null>(null);
 
   useEffect(() => {
-    let lexerOutput = lexer.parse(code);
-    console.log(lexerOutput);
-    const currentTokens: (typeof lexerOutput)[] = [];
-    while (lexerOutput) {
-      currentTokens.push(lexerOutput);
-      lexerOutput = lexerOutput.next;
+    setError(null);
+    let lexerOutput: Token<TokenKind> | undefined;
+    try {
+      lexerOutput = lexer.parse(code);
+      const currentTokens: (typeof lexerOutput)[] = [];
+      while (lexerOutput) {
+        currentTokens.push(lexerOutput);
+        lexerOutput = lexerOutput.next;
+      }
+      setTokens(currentTokens.filter((t): t is Token<TokenKind> => !!t));
+    } catch (e) {
+      setError(e as TokenError);
+      setTokens(undefined);
     }
-    setTokens(currentTokens.filter((t): t is Token<TokenKind> => !!t));
   }, [code]);
 
   console.log({ tokens });
@@ -97,43 +104,62 @@ const App: React.FC = () => {
           height: "74px",
         }}
       >
-        <table>
-          <tbody>
-            <tr>
-              {tokens?.map((token, i) => (
-                <td
-                  key={i}
-                  style={{
-                    color: tokenColors[token.kind],
-                    background: "white",
+        {error ? (
+          <div
+            style={{
+              color: "red",
+              background: "white",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "flex-start",
+              padding: "12px",
+            }}
+          >
+            {error.errorMessage}
+            <span>
+              Row: {error.pos?.rowBegin}:{error.pos?.rowEnd} Col:{" "}
+              {error.pos?.columnBegin}:{error.pos?.columnEnd}
+            </span>
+          </div>
+        ) : (
+          <table>
+            <tbody>
+              <tr>
+                {tokens?.map((token, i) => (
+                  <td
+                    key={i}
+                    style={{
+                      color: tokenColors[token.kind],
+                      background: "white",
 
-                    height: "1rem",
-                    border: "1px solid #ddd",
-                    padding: "4px",
-                  }}
-                >
-                  {token.text}
-                </td>
-              ))}
-            </tr>
-            <tr style={{ height: "1rem" }}>
-              {tokens?.map((token, i) => (
-                <td
-                  key={i}
-                  style={{
-                    color: tokenColors[token.kind],
-                    background: "white",
-                    height: "1rem",
-                    border: "1px solid #ddd",
-                    padding: "4px",
-                  }}
-                >
-                  {tokenToDisplayName[token.kind]}
-                </td>
-              ))}
-            </tr>
-          </tbody>
-        </table>
+                      height: "1rem",
+                      border: "1px solid #ddd",
+                      padding: "4px",
+                    }}
+                  >
+                    {token.text}
+                  </td>
+                ))}
+              </tr>
+              <tr style={{ height: "1rem" }}>
+                {tokens?.map((token, i) => (
+                  <td
+                    key={i}
+                    style={{
+                      color: tokenColors[token.kind],
+                      background: "white",
+                      height: "1rem",
+                      border: "1px solid #ddd",
+                      padding: "4px",
+                    }}
+                  >
+                    {tokenToDisplayName[token.kind]}
+                  </td>
+                ))}
+              </tr>
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   );
