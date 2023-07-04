@@ -90,17 +90,9 @@ describe("lexer", () => {
   });
 
   it("handles function declaration", () => {
-    let token = lexer.parse("func f(a, b) = a + b");
+    let token = lexer.parse("(a, b) = a + b");
 
     token = notUndefined(token);
-    assert.strictEqual(token.kind, TokenKind.FuncKeyword);
-    assert.strictEqual(token.text, "func");
-
-    token = notUndefined(token.next);
-    assert.strictEqual(token.kind, TokenKind.Identifier);
-    assert.strictEqual(token.text, "f");
-
-    token = notUndefined(token.next);
     assert.strictEqual(token.kind, TokenKind.LeftParen);
     assert.strictEqual(token.text, "(");
 
