@@ -70,7 +70,9 @@ export function FunctionParameters(
   } as const;
 }
 
-export function Block(statements: ast.Expression[]): ast.Block {
+export function Block(
+  statements: (ast.Expression | ast.Statement)[]
+): ast.Block {
   return {
     kind: ast.SyntaxKind.Block,
     statements,
@@ -85,5 +87,12 @@ export function FunctionCallExpression(
     kind: ast.SyntaxKind.FunctionCall,
     name,
     arguments: args,
+  } as const;
+}
+
+export function Program(statements: ast.Statement[]): ast.Program {
+  return {
+    kind: ast.SyntaxKind.Program,
+    statements,
   } as const;
 }

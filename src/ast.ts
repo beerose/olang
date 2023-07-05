@@ -10,6 +10,9 @@ export enum SyntaxKind {
   FunctionParameters = "FunctionParameters",
   FunctionCall = "FunctionCall",
   Block = "Block",
+  Program = "Program",
+  PrintStatement = "PrintStatement",
+  ExpressionStatement = "ExpressionStatement",
 }
 
 export interface BaseNode {
@@ -47,15 +50,6 @@ export interface Identifier extends BaseNode {
   name: string;
 }
 
-export type Expression =
-  | NumericLiteral
-  | BinaryExpression
-  | UnaryExpression
-  | Identifier
-  | VariableDeclaration
-  | FunctionExpression
-  | FunctionCall;
-
 export interface VariableDeclaration extends BaseNode {
   kind: SyntaxKind.VariableDeclaration;
   name: Identifier;
@@ -70,7 +64,7 @@ export interface FunctionExpression extends BaseNode {
 
 export interface Block extends BaseNode {
   kind: SyntaxKind.Block;
-  statements: Expression[];
+  statements: (Expression | Statement)[];
 }
 
 export interface FunctionParameters extends BaseNode {
@@ -84,4 +78,37 @@ export interface FunctionCall extends BaseNode {
   arguments: Expression[];
 }
 
-export type Node = Expression;
+export interface Program extends BaseNode {
+  kind: SyntaxKind.Program;
+  statements: Statement[];
+}
+
+export interface PrintStatement extends BaseNode {
+  kind: SyntaxKind.PrintStatement;
+  expression: Expression;
+}
+
+export interface ExpressionStatement extends BaseNode {
+  kind: SyntaxKind.ExpressionStatement;
+  expression: Expression;
+}
+
+export type Node =
+  | Program
+  | Expression
+  | Block
+  | Statement
+  | VariableDeclaration;
+
+export type Expression =
+  | NumericLiteral
+  | BinaryExpression
+  | UnaryExpression
+  | Identifier
+  | FunctionExpression
+  | FunctionCall;
+
+export type Statement =
+  | PrintStatement
+  | ExpressionStatement
+  | VariableDeclaration;
