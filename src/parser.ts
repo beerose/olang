@@ -18,7 +18,7 @@ import { TokenKind, lexer } from "./lexer";
 import type * as ast from "./ast";
 import { SyntaxKind } from "./ast";
 
-const Expression = rule<TokenKind, ast.Expression>();
+export const Expression = rule<TokenKind, ast.Expression>();
 
 const NumericLiteral = rule<TokenKind, ast.NumericLiteral>();
 const Identifier = rule<TokenKind, ast.Identifier>();
@@ -33,9 +33,14 @@ const AssignmentExpression = rule<TokenKind, ast.Expression>();
 const VariableDeclaration = rule<TokenKind, ast.VariableDeclaration>();
 const FunctionParametersDeclaration = rule<TokenKind, ast.FunctionParameters>();
 const FunctionExpression = rule<TokenKind, ast.FunctionExpression>();
-const Block = rule<TokenKind, ast.Block>();
+const FunctionBody = rule<TokenKind, ast.FunctionBody>();
 const FunctionCall = rule<TokenKind, ast.FunctionCall>();
 const FunctionCallArguments = rule<TokenKind, ast.Expression[]>();
+
+export const Statement = rule<TokenKind, ast.Statement>();
+export const ExpressionStatement = rule<TokenKind, ast.ExpressionStatement>();
+export const PrintStatement = rule<TokenKind, ast.PrintStatement>();
+export const Program = rule<TokenKind, ast.Program>();
 
 NumericLiteral.setPattern(
   apply(
@@ -189,21 +194,21 @@ FunctionParametersDeclaration.setPattern(
   )
 );
 
-Block.setPattern(
+FunctionBody.setPattern(
   apply(
     seq(
       tok(TokenKind.LeftBrace),
       opt_sc(
         kleft(
-          list_sc(opt_sc(Expression), tok(TokenKind.Semicolon)),
+          list_sc(opt_sc(Statement), opt_sc(tok(TokenKind.Semicolon))),
           opt_sc(tok(TokenKind.Semicolon))
         )
       ),
       tok(TokenKind.RightBrace)
     ),
-    ([, expressions = []]): ast.Block => ({
-      kind: SyntaxKind.Block,
-      statements: expressions.filter((e): e is ast.Expression => !!e),
+    ([, expressions = []]): ast.FunctionBody => ({
+      kind: SyntaxKind.FunctionBody,
+      statements: expressions.filter((e): e is ast.ExpressionStatement => !!e),
     })
   )
 );
@@ -213,7 +218,7 @@ FunctionExpression.setPattern(
     seq(
       FunctionParametersDeclaration,
       tok(TokenKind.Arrow),
-      alt(Block, Expression)
+      alt(FunctionBody, Expression)
     ),
     ([parameters, , body]): ast.FunctionExpression => ({
       kind: SyntaxKind.Function,
@@ -253,16 +258,53 @@ FunctionCall.setPattern(
 );
 
 Expression.setPattern(
-  alt(
-    FunctionCall,
-    VariableDeclaration,
-    AssignmentExpression,
-    FunctionExpression
+  alt(FunctionCall, AssignmentExpression, FunctionExpression)
+);
+
+PrintStatement.setPattern(
+  apply(
+    seq(tok(TokenKind.PrintKeyword), Expression),
+    ([, expression]): ast.PrintStatement => ({
+      kind: SyntaxKind.PrintStatement,
+      expression,
+    })
+  )
+);
+
+ExpressionStatement.setPattern(
+  apply(
+    seq(Expression, opt_sc(tok(TokenKind.Semicolon))),
+    ([expression]): ast.ExpressionStatement => ({
+      kind: SyntaxKind.ExpressionStatement,
+      expression,
+    })
+  )
+);
+
+Statement.setPattern(
+  alt(PrintStatement, ExpressionStatement, VariableDeclaration)
+);
+
+Program.setPattern(
+  apply(
+    seq(
+      opt_sc(
+        kleft(
+          list_sc(opt_sc(Statement), opt_sc(tok(TokenKind.Semicolon))),
+          opt_sc(tok(TokenKind.Semicolon))
+        )
+      ),
+      opt_sc(tok(TokenKind.Semicolon))
+    ),
+    ([statements = []]): ast.Program => ({
+      kind: SyntaxKind.Program,
+      statements: statements.filter((e): e is ast.Statement => !!e),
+    })
   )
 );
 
 export function parse(expr: string) {
-  return Expression.parse(lexer.parse(expr));
+  return Program.parse(lexer.parse(expr));
 }
 
 export function printAST(expr: string) {
