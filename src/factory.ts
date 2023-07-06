@@ -51,22 +51,13 @@ export function VariableDeclaration(
 }
 
 export function FunctionExpression(
-  parameters: ast.FunctionParameters,
+  parameters: ast.Identifier[],
   body: ast.Expression | ast.Statement[]
 ): ast.FunctionExpression {
   return {
     kind: "Function",
     parameters,
     body,
-  } as const;
-}
-
-export function FunctionParameters(
-  parameters: ast.Identifier[]
-): ast.FunctionParameters {
-  return {
-    kind: "FunctionParameters",
-    parameters,
   } as const;
 }
 

@@ -101,7 +101,7 @@ describe("lexer", () => {
     assert.strictEqual(token.text, "a");
 
     token = notUndefined(token.next);
-    assert.strictEqual(token.kind, TokenKind.Newline);
+    assert.strictEqual(token.kind, TokenKind.Comma);
     assert.strictEqual(token.text, ",");
 
     token = notUndefined(token.next);

@@ -15,7 +15,6 @@ import {
 } from "typescript-parsec";
 import { TokenKind, lexer } from "./lexer";
 import type * as ast from "./ast";
-import { SyntaxKind } from "./ast";
 
 export const Expression = rule<TokenKind, ast.Expression>();
 
@@ -30,7 +29,6 @@ const PowerExpression = rule<TokenKind, ast.Expression>();
 const AdditiveExpression = rule<TokenKind, ast.Expression>();
 const AssignmentExpression = rule<TokenKind, ast.Expression>();
 const VariableDeclaration = rule<TokenKind, ast.VariableDeclaration>();
-const FunctionParameters = rule<TokenKind, ast.FunctionParameters>();
 const FunctionExpression = rule<TokenKind, ast.FunctionExpression>();
 const FunctionCall = rule<TokenKind, ast.FunctionCall>();
 const FunctionCallArguments = rule<TokenKind, ast.Expression[]>();
@@ -163,37 +161,17 @@ VariableDeclaration.setPattern(
   )
 );
 
-FunctionParameters.setPattern(
+FunctionExpression.setPattern(
   apply(
     seq(
       tok(TokenKind.LeftParen),
       opt_sc(
         kleft(
-          list_sc(opt_sc(tok(TokenKind.Identifier)), tok(TokenKind.Newline)),
-          opt_sc(tok(TokenKind.Newline))
+          list_sc(opt_sc(Identifier), tok(TokenKind.Comma)),
+          opt_sc(tok(TokenKind.Comma))
         )
       ),
-      tok(TokenKind.RightParen)
-    ),
-    ([_, parameters = []]): ast.FunctionParameters => {
-      const parametersList = parameters
-        .map((parameter) => parameter?.text)
-        .filter((p): p is string => !!p);
-      return {
-        kind: "FunctionParameters",
-        parameters: parametersList.map((parameter) => ({
-          kind: "Identifier",
-          name: parameter,
-        })),
-      };
-    }
-  )
-);
-
-FunctionExpression.setPattern(
-  apply(
-    seq(
-      FunctionParameters,
+      tok(TokenKind.RightParen),
       tok(TokenKind.Arrow),
       alt(
         Expression,
@@ -201,17 +179,17 @@ FunctionExpression.setPattern(
           tok(TokenKind.LeftBrace),
           opt_sc(
             kleft(
-              list_sc(Statement, opt_sc(tok(TokenKind.Semicolon))),
-              opt_sc(tok(TokenKind.Semicolon))
+              list_sc(Statement, opt_sc(tok(TokenKind.Newline))),
+              opt_sc(tok(TokenKind.Newline))
             )
           ),
           tok(TokenKind.RightBrace)
         )
       )
     ),
-    ([parameters, , body]): ast.FunctionExpression => ({
+    ([, parameters, , , body]): ast.FunctionExpression => ({
       kind: "Function",
-      parameters,
+      parameters: parameters?.filter((p): p is ast.Identifier => !!p) || [],
       body: Array.isArray(body) ? body[1] || [] : [body],
     })
   )
@@ -223,8 +201,8 @@ FunctionCallArguments.setPattern(
       tok(TokenKind.LeftParen),
       opt_sc(
         kleft(
-          list_sc(opt_sc(Expression), tok(TokenKind.Newline)),
-          opt_sc(tok(TokenKind.Newline))
+          list_sc(opt_sc(Expression), tok(TokenKind.Comma)),
+          opt_sc(tok(TokenKind.Comma))
         )
       ),
       tok(TokenKind.RightParen)

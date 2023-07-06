@@ -10,7 +10,6 @@ import {
   Identifier,
   VariableDeclaration,
   FunctionExpression,
-  FunctionParameters,
   CallExpression,
   Program,
 } from "./factory";
@@ -24,12 +23,12 @@ const expectParsed = (expression: string, expected: Node) => {
 describe("parser", () => {
   it("parses numeric literals", () => {
     expectParsed("1", {
-      kind: 'NumericLiteral',
+      kind: "NumericLiteral",
       value: 1,
     });
 
     expectParsed("1000.0002", {
-      kind: 'NumericLiteral',
+      kind: "NumericLiteral",
       value: 1000.0002,
     });
   });
@@ -50,10 +49,10 @@ describe("parser", () => {
       );
 
       expectParsed("1 * 2 * 3", {
-        kind: 'BinaryExpression',
+        kind: "BinaryExpression",
         operator: TokenKind.Asterisk,
         left: {
-          kind: 'BinaryExpression',
+          kind: "BinaryExpression",
           operator: TokenKind.Asterisk,
           left: NumericLiteral(1),
           right: NumericLiteral(2),
@@ -265,27 +264,26 @@ describe("parser", () => {
     expectParsed(
       // noop
       "() => {}",
-      FunctionExpression(FunctionParameters([]), [])
+      FunctionExpression([], [])
     );
 
     expectParsed(
-      "() => 1 + 2 ",
-      FunctionExpression(FunctionParameters([]), [
-        BinaryExpression(NumericLiteral(1), TokenKind.Plus, NumericLiteral(2)),
-      ])
+      "() => 1 + 2",
+      FunctionExpression(
+        [],
+        [BinaryExpression(NumericLiteral(1), TokenKind.Plus, NumericLiteral(2))]
+      )
     );
 
     expectParsed(
       "(b) => 1",
-      FunctionExpression(FunctionParameters([Identifier("b")]), [
-        NumericLiteral(1),
-      ])
+      FunctionExpression([Identifier("b")], [NumericLiteral(1)])
     );
 
     expectParsed(
       "(b, c) => 1",
       FunctionExpression(
-        FunctionParameters([Identifier("b"), Identifier("c")]),
+        [Identifier("b"), Identifier("c")],
         [NumericLiteral(1)]
       )
     );
@@ -293,7 +291,7 @@ describe("parser", () => {
     expectParsed(
       "(b, c) => b + c",
       FunctionExpression(
-        FunctionParameters([Identifier("b"), Identifier("c")]),
+        [Identifier("b"), Identifier("c")],
         [BinaryExpression(Identifier("b"), TokenKind.Plus, Identifier("c"))]
       )
     );
@@ -301,7 +299,7 @@ describe("parser", () => {
     expectParsed(
       "(b, c) => { b + c }",
       FunctionExpression(
-        FunctionParameters([Identifier("b"), Identifier("c")]),
+        [Identifier("b"), Identifier("c")],
         [BinaryExpression(Identifier("b"), TokenKind.Plus, Identifier("c"))]
       )
     );
@@ -312,7 +310,7 @@ describe("parser", () => {
           b - c
        }`,
       FunctionExpression(
-        FunctionParameters([Identifier("b"), Identifier("c")]),
+        [Identifier("b"), Identifier("c")],
         [
           BinaryExpression(Identifier("b"), TokenKind.Plus, Identifier("c")),
           BinaryExpression(Identifier("b"), TokenKind.Minus, Identifier("c")),
@@ -326,7 +324,7 @@ describe("parser", () => {
           x
        }`,
       FunctionExpression(
-        FunctionParameters([Identifier("b"), Identifier("c")]),
+        [Identifier("b"), Identifier("c")],
         [
           VariableDeclaration(
             Identifier("x"),
@@ -343,7 +341,7 @@ describe("parser", () => {
       "let a = () => 1",
       VariableDeclaration(
         Identifier("a"),
-        FunctionExpression(FunctionParameters([]), [NumericLiteral(1)])
+        FunctionExpression([], [NumericLiteral(1)])
       )
     );
 
@@ -351,9 +349,7 @@ describe("parser", () => {
       "let a = (b) => 1",
       VariableDeclaration(
         Identifier("a"),
-        FunctionExpression(FunctionParameters([Identifier("b")]), [
-          NumericLiteral(1),
-        ])
+        FunctionExpression([Identifier("b")], [NumericLiteral(1)])
       )
     );
 
@@ -362,7 +358,7 @@ describe("parser", () => {
       VariableDeclaration(
         Identifier("a"),
         FunctionExpression(
-          FunctionParameters([Identifier("b"), Identifier("c")]),
+          [Identifier("b"), Identifier("c")],
           [BinaryExpression(Identifier("b"), TokenKind.Plus, Identifier("c"))]
         )
       )
@@ -413,7 +409,7 @@ describe("parser", () => {
 
   it("parses programs", () => {
     expectParsed("let a = 1", {
-      kind: 'Program',
+      kind: "Program",
       statements: [VariableDeclaration(Identifier("a"), NumericLiteral(1))],
     });
 
@@ -421,7 +417,7 @@ describe("parser", () => {
       `let a = 1
        let b = 2`,
       {
-        kind: 'Program',
+        kind: "Program",
         statements: [
           VariableDeclaration(Identifier("a"), NumericLiteral(1)),
           VariableDeclaration(Identifier("b"), NumericLiteral(2)),
@@ -435,7 +431,7 @@ describe("parser", () => {
        let c = 3
       `,
       {
-        kind: 'Program',
+        kind: "Program",
         statements: [
           VariableDeclaration(Identifier("a"), NumericLiteral(1)),
           VariableDeclaration(Identifier("b"), NumericLiteral(2)),
@@ -450,7 +446,7 @@ describe("parser", () => {
        let c = 3
        let d = 4`,
       {
-        kind: 'Program',
+        kind: "Program",
         statements: [
           VariableDeclaration(Identifier("a"), NumericLiteral(1)),
           VariableDeclaration(Identifier("b"), NumericLiteral(2)),
@@ -465,22 +461,25 @@ describe("parser", () => {
        let b = a
        let c = (d) => { a + 10 }`,
       {
-        kind: 'Program',
+        kind: "Program",
         statements: [
           VariableDeclaration(
             Identifier("a"),
-            FunctionExpression(FunctionParameters([]), [NumericLiteral(1)])
+            FunctionExpression([], [NumericLiteral(1)])
           ),
           VariableDeclaration(Identifier("b"), Identifier("a")),
           VariableDeclaration(
             Identifier("c"),
-            FunctionExpression(FunctionParameters([Identifier("d")]), [
-              BinaryExpression(
-                Identifier("a"),
-                TokenKind.Plus,
-                NumericLiteral(10)
-              ),
-            ])
+            FunctionExpression(
+              [Identifier("d")],
+              [
+                BinaryExpression(
+                  Identifier("a"),
+                  TokenKind.Plus,
+                  NumericLiteral(10)
+                ),
+              ]
+            )
           ),
         ],
       }

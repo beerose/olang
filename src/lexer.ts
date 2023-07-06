@@ -16,8 +16,8 @@ export enum TokenKind {
   Space = " ",
   Identifier = "i",
   LetKeyword = "let",
+  Comma = ",",
   Newline = "\n",
-  Semicolon = ";",
   Arrow = "=>",
 }
 
@@ -31,6 +31,7 @@ export type OperatorTokenKind =
   | TokenKind.AsteriskAsterisk;
 
 export const lexer = buildLexer([
+  [true, /^\n/g, TokenKind.Newline],
   [true, /^\d+(\.\d+)?/g, TokenKind.Number],
   [true, /^\=/g, TokenKind.Equals],
   [true, /^\+/g, TokenKind.Plus],
@@ -41,8 +42,7 @@ export const lexer = buildLexer([
   [true, /^\(/g, TokenKind.LeftParen],
   [true, /^\)/g, TokenKind.RightParen],
   [false, /^\s+/g, TokenKind.Space],
-  [true, /^\,/g, TokenKind.Newline],
-  [true, /^\;/g, TokenKind.Semicolon],
+  [true, /^\,/g, TokenKind.Comma],
   [true, /^\{/g, TokenKind.LeftBrace],
   [true, /^\}/g, TokenKind.RightBrace],
   [true, /^=>/g, TokenKind.Arrow],
