@@ -52,7 +52,7 @@ export function VariableDeclaration(
 
 export function FunctionExpression(
   parameters: ast.FunctionParameters,
-  body: ast.Expression | ast.Block
+  body: ast.Expression | ast.FunctionBody
 ): ast.FunctionExpression {
   return {
     kind: ast.SyntaxKind.Function,
@@ -70,11 +70,9 @@ export function FunctionParameters(
   } as const;
 }
 
-export function Block(
-  statements: (ast.Expression | ast.Statement)[]
-): ast.Block {
+export function FunctionBody(statements: ast.Statement[]): ast.FunctionBody {
   return {
-    kind: ast.SyntaxKind.Block,
+    kind: ast.SyntaxKind.FunctionBody,
     statements,
   } as const;
 }
@@ -87,6 +85,15 @@ export function FunctionCallExpression(
     kind: ast.SyntaxKind.FunctionCall,
     name,
     arguments: args,
+  } as const;
+}
+
+export function ExpressionStatement(
+  expression: ast.Expression
+): ast.ExpressionStatement {
+  return {
+    kind: ast.SyntaxKind.ExpressionStatement,
+    expression,
   } as const;
 }
 
