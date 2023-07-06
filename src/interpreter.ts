@@ -91,6 +91,31 @@ export function interpret(programAst: ast.Program): Result {
     bindings: {},
   };
 
+  function createFunctionScope(node: ast.FunctionCall, scope: Readonly<Scope>) {
+    const functionName = node.name.name;
+    const functionDeclaration = getBinding(
+      scope,
+      functionName
+    ) as ast.FunctionExpression;
+
+    const fnScope: Scope = {
+      parent: scope,
+      bindings: {},
+    };
+
+    for (let i = 0; i < functionDeclaration.parameters.length; i++) {
+      const parameter = functionDeclaration.parameters[i];
+      const argument = node.arguments[i];
+      if (!argument || !parameter) {
+        throw new Error("Illegal function call. Missing argument.");
+      }
+
+      fnScope.bindings[parameter.name] = evaluate(argument, scope);
+    }
+
+    return { functionDeclaration, fnScope };
+  }
+
   function evaluate(node: ast.Node, scope: Scope): Result {
     console.log("evaluate", node);
     switch (node.kind) {
@@ -156,40 +181,4 @@ export function interpret(programAst: ast.Program): Result {
 
   console.log(scope.bindings);
   return evaluate(programAst, scope);
-}
-
-function createFunctionScope(node: ast.FunctionCall, scope: Readonly<Scope>) {
-  const functionName = node.name.name;
-  const functionDeclaration = getBinding(
-    scope,
-    functionName
-  ) as ast.FunctionExpression;
-
-  const fnScope: Scope = {
-    parent: scope,
-    bindings: {},
-  };
-
-  for (let i = 0; i < functionDeclaration.parameters.length; i++) {
-    const parameter = functionDeclaration.parameters[i];
-    const argument = node.arguments[i];
-    if (!argument || !parameter) {
-      throw new Error("Illegal function call. Missing argument.");
-    }
-
-    switch (argument.kind) {
-      case "NumericLiteral":
-        fnScope.bindings[parameter.name] = argument.value;
-        break;
-      case "Identifier":
-        fnScope.bindings[parameter.name] = getBinding(scope, argument.name);
-        break;
-      default:
-        throw new Error(
-          `Illegal function call. Argument must be a number or identifier.`
-        );
-    }
-  }
-
-  return { functionDeclaration, fnScope };
 }

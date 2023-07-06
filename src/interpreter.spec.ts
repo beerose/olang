@@ -64,5 +64,60 @@ describe(interpret, () => {
       `,
       144
     );
+
+    expectEvaluated(
+      `
+      let square = (x) => {
+        x ** 2
+      }
+      let inc = (x) => x + 1
+      let main = (x) => {
+        let y = inc(x)
+        square(y)
+      }
+      main(11) + main(12)
+      `,
+      313
+    );
+
+    expectEvaluated(
+      `
+      let test = (x) => {
+        let inc = (y) => y + 1
+        let z = inc(inc(x))
+        x ** z
+      }
+      test(2)
+      `,
+      16
+    );
+
+    expectEvaluated(
+      `
+      let test = (x) => {
+        let inc = (y) => y + 1
+        let z = inc(inc(x))
+        x ** z
+      }
+      test(2) + test(3)
+      `,
+      259
+    );
+
+    expectEvaluated(
+      `
+      let test = (x) => {
+        let test2 = (y) => {
+          let inc = (z) => z + 1
+          let z = inc(inc(y))
+          y ** z
+        }
+        test2(x)
+      }
+      test(2)
+
+      `,
+      16
+    );
   });
 });

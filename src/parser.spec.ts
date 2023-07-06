@@ -413,6 +413,43 @@ describe("parser", () => {
         BinaryExpression(Identifier("c"), TokenKind.Plus, Identifier("d")),
       ])
     );
+
+    expectParsed(
+      "inc(inc(1))",
+      CallExpression(Identifier("inc"), [
+        CallExpression(Identifier("inc"), [NumericLiteral(1)]),
+      ])
+    );
+
+    expectParsed(
+      "inc(inc(1), inc(2))",
+      CallExpression(Identifier("inc"), [
+        CallExpression(Identifier("inc"), [NumericLiteral(1)]),
+        CallExpression(Identifier("inc"), [NumericLiteral(2)]),
+      ])
+    );
+
+    expectParsed(
+      "inc(inc(1) + inc(2))",
+      CallExpression(Identifier("inc"), [
+        BinaryExpression(
+          CallExpression(Identifier("inc"), [NumericLiteral(1)]),
+          TokenKind.Plus,
+          CallExpression(Identifier("inc"), [NumericLiteral(2)])
+        ),
+      ])
+    );
+  });
+
+  it("parses function calls within binary operations", () => {
+    expectParsed(
+      "a() + b()",
+      BinaryExpression(
+        CallExpression(Identifier("a"), []),
+        TokenKind.Plus,
+        CallExpression(Identifier("b"), [])
+      )
+    );
   });
 
   it("parses programs", () => {

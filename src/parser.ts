@@ -3,6 +3,8 @@ import {
   alt,
   alt_sc,
   apply,
+  expectEOF,
+  expectSingleResult,
   kleft,
   kmid,
   list_sc,
@@ -21,7 +23,6 @@ export const Expression = rule<TokenKind, ast.Expression>();
 const NumericLiteral = rule<TokenKind, ast.NumericLiteral>();
 const Identifier = rule<TokenKind, ast.Identifier>();
 const Term = rule<TokenKind, ast.Expression>();
-const LeftHandSideExpression = rule<TokenKind, ast.Expression>();
 
 const UnaryExpression = rule<TokenKind, ast.UnaryExpression>();
 const MultiplicativeExpression = rule<TokenKind, ast.Expression>();
@@ -31,7 +32,6 @@ const AssignmentExpression = rule<TokenKind, ast.Expression>();
 const VariableDeclaration = rule<TokenKind, ast.VariableDeclaration>();
 const FunctionExpression = rule<TokenKind, ast.FunctionExpression>();
 const FunctionCall = rule<TokenKind, ast.FunctionCall>();
-const FunctionCallArguments = rule<TokenKind, ast.Expression[]>();
 
 export const Program = rule<TokenKind, ast.Program>();
 
@@ -68,11 +68,9 @@ UnaryExpression.setPattern(
   )
 );
 
-// TODO: Object access
-LeftHandSideExpression.setPattern(Term);
-
 Term.setPattern(
-  alt(
+  alt_sc(
+    FunctionCall,
     NumericLiteral,
     Identifier,
     UnaryExpression,
@@ -194,9 +192,10 @@ FunctionExpression.setPattern(
   )
 );
 
-FunctionCallArguments.setPattern(
+FunctionCall.setPattern(
   apply(
     seq(
+      Identifier,
       tok(TokenKind.LeftParen),
       opt_sc(
         kleft(
@@ -206,30 +205,16 @@ FunctionCallArguments.setPattern(
       ),
       tok(TokenKind.RightParen)
     ),
-    ([, parameters = []]): ast.Expression[] => {
-      return parameters.filter((e): e is ast.Expression => !!e);
-    }
-  )
-);
-
-FunctionCall.setPattern(
-  apply(
-    seq(Identifier, FunctionCallArguments),
-    ([identifier, parameters]): ast.FunctionCall => ({
+    ([identifier, _leftParen, parameters, _rightParen]): ast.FunctionCall => ({
       kind: "FunctionCall",
       name: identifier,
-      arguments: parameters,
+      arguments: (parameters || []).filter((e): e is ast.Expression => !!e),
     })
   )
 );
 
 Expression.setPattern(
-  alt_sc(
-    FunctionExpression,
-    FunctionCall,
-    VariableDeclaration,
-    AssignmentExpression
-  )
+  alt_sc(FunctionExpression, VariableDeclaration, AssignmentExpression)
 );
 
 Program.setPattern(
