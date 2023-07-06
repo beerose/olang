@@ -21,7 +21,7 @@ const tokenColors: { [key in TokenKind]: string } = {
   [TokenKind.Space]: "black",
   [TokenKind.Identifier]: "indianred",
   [TokenKind.LetKeyword]: "magenta",
-  [TokenKind.Comma]: "darkblue",
+  [TokenKind.Newline]: "darkblue",
   [TokenKind.Semicolon]: "darkgreen",
   [TokenKind.Arrow]: "slategray",
 };
@@ -42,7 +42,7 @@ const tokenToDisplayName: { [key in TokenKind]: string } = {
   [TokenKind.Space]: "Space",
   [TokenKind.Identifier]: "Identifier",
   [TokenKind.LetKeyword]: "LetKeyword",
-  [TokenKind.Comma]: "Comma",
+  [TokenKind.Newline]: "Comma",
   [TokenKind.Semicolon]: "Semicolon",
   [TokenKind.Arrow]: "Arrow",
 };
