@@ -1,28 +1,27 @@
 import { TokenKind } from "./lexer";
 
-export enum SyntaxKind {
-  BinaryExpression = "BinaryExpression",
-  UnaryExpression = "UnaryExpression",
-  NumericLiteral = "NumericLiteral",
-  Identifier = "Identifier",
-  VariableDeclaration = "VariableDeclaration",
-  Function = "Function",
-  FunctionParameters = "FunctionParameters",
-  FunctionCall = "FunctionCall",
-  Program = "Program",
-}
+export type SyntaxKind =
+  | "BinaryExpression"
+  | "UnaryExpression"
+  | "NumericLiteral"
+  | "Identifier"
+  | "VariableDeclaration"
+  | "Function"
+  | "FunctionParameters"
+  | "FunctionCall"
+  | "Program";
 
 export interface BaseNode {
   kind: SyntaxKind;
 }
 
 export interface NumericLiteral extends BaseNode {
-  kind: SyntaxKind.NumericLiteral;
+  kind: "NumericLiteral";
   value: number;
 }
 
 export interface BinaryExpression extends BaseNode {
-  kind: SyntaxKind.BinaryExpression;
+  kind: "BinaryExpression";
   left: Expression;
   operator:
     | TokenKind.Equals
@@ -37,41 +36,41 @@ export interface BinaryExpression extends BaseNode {
 }
 
 export interface UnaryExpression extends BaseNode {
-  kind: SyntaxKind.UnaryExpression;
+  kind: "UnaryExpression";
   operator: TokenKind.Minus;
   operand: Expression;
 }
 
 export interface Identifier extends BaseNode {
-  kind: SyntaxKind.Identifier;
+  kind: "Identifier";
   name: string;
 }
 
 export interface VariableDeclaration extends BaseNode {
-  kind: SyntaxKind.VariableDeclaration;
+  kind: "VariableDeclaration";
   name: Identifier;
   initializer: Expression;
 }
 
 export interface FunctionExpression extends BaseNode {
-  kind: SyntaxKind.Function;
+  kind: "Function";
   parameters: FunctionParameters;
   body: Statement[] | Expression;
 }
 
 export interface FunctionParameters extends BaseNode {
-  kind: SyntaxKind.FunctionParameters;
+  kind: "FunctionParameters";
   parameters: Identifier[];
 }
 
 export interface FunctionCall extends BaseNode {
-  kind: SyntaxKind.FunctionCall;
+  kind: "FunctionCall";
   name: Identifier;
   arguments: Expression[];
 }
 
 export interface Program extends BaseNode {
-  kind: SyntaxKind.Program;
+  kind: "Program";
   statements: Statement[];
 }
 

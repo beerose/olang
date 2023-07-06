@@ -24,12 +24,12 @@ const expectParsed = (expression: string, expected: Node) => {
 describe("parser", () => {
   it("parses numeric literals", () => {
     expectParsed("1", {
-      kind: SyntaxKind.NumericLiteral,
+      kind: 'NumericLiteral',
       value: 1,
     });
 
     expectParsed("1000.0002", {
-      kind: SyntaxKind.NumericLiteral,
+      kind: 'NumericLiteral',
       value: 1000.0002,
     });
   });
@@ -50,10 +50,10 @@ describe("parser", () => {
       );
 
       expectParsed("1 * 2 * 3", {
-        kind: SyntaxKind.BinaryExpression,
+        kind: 'BinaryExpression',
         operator: TokenKind.Asterisk,
         left: {
-          kind: SyntaxKind.BinaryExpression,
+          kind: 'BinaryExpression',
           operator: TokenKind.Asterisk,
           left: NumericLiteral(1),
           right: NumericLiteral(2),
@@ -413,7 +413,7 @@ describe("parser", () => {
 
   it("parses programs", () => {
     expectParsed("let a = 1", {
-      kind: SyntaxKind.Program,
+      kind: 'Program',
       statements: [VariableDeclaration(Identifier("a"), NumericLiteral(1))],
     });
 
@@ -421,7 +421,7 @@ describe("parser", () => {
       `let a = 1
        let b = 2`,
       {
-        kind: SyntaxKind.Program,
+        kind: 'Program',
         statements: [
           VariableDeclaration(Identifier("a"), NumericLiteral(1)),
           VariableDeclaration(Identifier("b"), NumericLiteral(2)),
@@ -435,7 +435,7 @@ describe("parser", () => {
        let c = 3
       `,
       {
-        kind: SyntaxKind.Program,
+        kind: 'Program',
         statements: [
           VariableDeclaration(Identifier("a"), NumericLiteral(1)),
           VariableDeclaration(Identifier("b"), NumericLiteral(2)),
@@ -450,7 +450,7 @@ describe("parser", () => {
        let c = 3
        let d = 4`,
       {
-        kind: SyntaxKind.Program,
+        kind: 'Program',
         statements: [
           VariableDeclaration(Identifier("a"), NumericLiteral(1)),
           VariableDeclaration(Identifier("b"), NumericLiteral(2)),
@@ -465,7 +465,7 @@ describe("parser", () => {
        let b = a
        let c = (d) => { a + 10 }`,
       {
-        kind: SyntaxKind.Program,
+        kind: 'Program',
         statements: [
           VariableDeclaration(
             Identifier("a"),

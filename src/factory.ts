@@ -3,7 +3,7 @@ import type { OperatorTokenKind, TokenKind } from "./lexer";
 
 export function NumericLiteral(value: number): ast.NumericLiteral {
   return {
-    kind: ast.SyntaxKind.NumericLiteral,
+    kind: "NumericLiteral",
     value,
   } as const;
 }
@@ -14,7 +14,7 @@ export function BinaryExpression(
   right: ast.Expression
 ): ast.BinaryExpression {
   return {
-    kind: ast.SyntaxKind.BinaryExpression,
+    kind: "BinaryExpression",
     left,
     operator,
     right,
@@ -26,7 +26,7 @@ export function UnaryExpression(
   operand: ast.Expression
 ): ast.UnaryExpression {
   return {
-    kind: ast.SyntaxKind.UnaryExpression,
+    kind: "UnaryExpression",
     operator,
     operand,
   } as const;
@@ -34,7 +34,7 @@ export function UnaryExpression(
 
 export function Identifier(name: string): ast.Identifier {
   return {
-    kind: ast.SyntaxKind.Identifier,
+    kind: "Identifier",
     name,
   } as const;
 }
@@ -44,7 +44,7 @@ export function VariableDeclaration(
   initializer: ast.Expression
 ): ast.VariableDeclaration {
   return {
-    kind: ast.SyntaxKind.VariableDeclaration,
+    kind: "VariableDeclaration",
     name,
     initializer,
   } as const;
@@ -55,7 +55,7 @@ export function FunctionExpression(
   body: ast.Expression | ast.Statement[]
 ): ast.FunctionExpression {
   return {
-    kind: ast.SyntaxKind.Function,
+    kind: "Function",
     parameters,
     body,
   } as const;
@@ -65,7 +65,7 @@ export function FunctionParameters(
   parameters: ast.Identifier[]
 ): ast.FunctionParameters {
   return {
-    kind: ast.SyntaxKind.FunctionParameters,
+    kind: "FunctionParameters",
     parameters,
   } as const;
 }
@@ -75,7 +75,7 @@ export function CallExpression(
   args: ast.Expression[]
 ): ast.FunctionCall {
   return {
-    kind: ast.SyntaxKind.FunctionCall,
+    kind: "FunctionCall",
     name,
     arguments: args,
   } as const;
@@ -83,7 +83,7 @@ export function CallExpression(
 
 export function Program(statements: ast.Statement[]): ast.Program {
   return {
-    kind: ast.SyntaxKind.Program,
+    kind: "Program",
     statements,
   } as const;
 }

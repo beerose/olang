@@ -43,7 +43,7 @@ NumericLiteral.setPattern(
     tok(TokenKind.Number),
     (value: Token<TokenKind.Number>): ast.NumericLiteral => {
       return {
-        kind: SyntaxKind.NumericLiteral,
+        kind: "NumericLiteral",
         value: parseFloat(value.text),
       };
     }
@@ -54,7 +54,7 @@ Identifier.setPattern(
   apply(
     tok(TokenKind.Identifier),
     (token): ast.Identifier => ({
-      kind: SyntaxKind.Identifier,
+      kind: "Identifier",
       name: token.text,
     })
   )
@@ -64,7 +64,7 @@ UnaryExpression.setPattern(
   apply(
     seq(tok(TokenKind.Minus), Term),
     ([operator, operand]): ast.UnaryExpression => ({
-      kind: SyntaxKind.UnaryExpression,
+      kind: "UnaryExpression",
       operator: operator.kind,
       operand: operand,
     })
@@ -89,7 +89,7 @@ PowerExpression.setPattern(
     apply(
       seq(Term, tok(TokenKind.AsteriskAsterisk), PowerExpression),
       ([left, , right]) => ({
-        kind: SyntaxKind.BinaryExpression,
+        kind: "BinaryExpression",
         operator: TokenKind.AsteriskAsterisk,
         left,
         right,
@@ -110,7 +110,7 @@ MultiplicativeExpression.setPattern(
       PowerExpression
     ),
     (left, [operator, right]): ast.BinaryExpression => ({
-      kind: SyntaxKind.BinaryExpression,
+      kind: "BinaryExpression",
       operator: operator.kind,
       left,
       right,
@@ -126,7 +126,7 @@ AdditiveExpression.setPattern(
       MultiplicativeExpression
     ),
     (left, [operator, right]): ast.BinaryExpression => ({
-      kind: SyntaxKind.BinaryExpression,
+      kind: "BinaryExpression",
       operator: operator.kind,
       left,
       right,
@@ -139,7 +139,7 @@ AssignmentExpression.setPattern(
     AdditiveExpression,
     seq(tok(TokenKind.Equals), AdditiveExpression),
     (left, [operator, right]): ast.BinaryExpression => ({
-      kind: SyntaxKind.BinaryExpression,
+      kind: "BinaryExpression",
       operator: operator.kind,
       left,
       right,
@@ -156,7 +156,7 @@ VariableDeclaration.setPattern(
       alt(AssignmentExpression, FunctionExpression)
     ),
     ([, identifier, , initializer]): ast.VariableDeclaration => ({
-      kind: SyntaxKind.VariableDeclaration,
+      kind: "VariableDeclaration",
       name: identifier,
       initializer,
     })
@@ -180,9 +180,9 @@ FunctionParameters.setPattern(
         .map((parameter) => parameter?.text)
         .filter((p): p is string => !!p);
       return {
-        kind: SyntaxKind.FunctionParameters,
+        kind: "FunctionParameters",
         parameters: parametersList.map((parameter) => ({
-          kind: SyntaxKind.Identifier,
+          kind: "Identifier",
           name: parameter,
         })),
       };
@@ -210,7 +210,7 @@ FunctionExpression.setPattern(
       )
     ),
     ([parameters, , body]): ast.FunctionExpression => ({
-      kind: SyntaxKind.Function,
+      kind: "Function",
       parameters,
       body: Array.isArray(body) ? body[1] || [] : [body],
     })
@@ -239,7 +239,7 @@ FunctionCall.setPattern(
   apply(
     seq(Identifier, FunctionCallArguments),
     ([identifier, parameters]): ast.FunctionCall => ({
-      kind: SyntaxKind.FunctionCall,
+      kind: "FunctionCall",
       name: identifier,
       arguments: parameters,
     })
@@ -264,7 +264,7 @@ Program.setPattern(
       opt_sc(tok(TokenKind.Semicolon))
     ),
     ([statements = []]): ast.Program => ({
-      kind: SyntaxKind.Program,
+      kind: "Program",
       statements: statements.filter((e): e is ast.Statement => !!e),
     })
   )
