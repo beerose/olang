@@ -16,7 +16,7 @@ export enum TokenKind {
   Space = " ",
   Identifier = "i",
   LetKeyword = "let",
-  Comma = ",",
+  Newline = "\n",
   Semicolon = ";",
   Arrow = "=>",
 }
@@ -41,7 +41,7 @@ export const lexer = buildLexer([
   [true, /^\(/g, TokenKind.LeftParen],
   [true, /^\)/g, TokenKind.RightParen],
   [false, /^\s+/g, TokenKind.Space],
-  [true, /^\,/g, TokenKind.Comma],
+  [true, /^\,/g, TokenKind.Newline],
   [true, /^\;/g, TokenKind.Semicolon],
   [true, /^\{/g, TokenKind.LeftBrace],
   [true, /^\}/g, TokenKind.RightBrace],

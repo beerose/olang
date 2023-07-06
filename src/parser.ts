@@ -1,6 +1,7 @@
 import {
   Token,
   alt,
+  alt_sc,
   apply,
   expectEOF,
   expectSingleResult,
@@ -171,8 +172,8 @@ FunctionParametersDeclaration.setPattern(
       tok(TokenKind.LeftParen),
       opt_sc(
         kleft(
-          list_sc(opt_sc(tok(TokenKind.Identifier)), tok(TokenKind.Comma)),
-          opt_sc(tok(TokenKind.Comma))
+          list_sc(opt_sc(tok(TokenKind.Identifier)), tok(TokenKind.Newline)),
+          opt_sc(tok(TokenKind.Newline))
         )
       ),
       tok(TokenKind.RightParen)
@@ -232,8 +233,8 @@ FunctionCallArguments.setPattern(
       tok(TokenKind.LeftParen),
       opt_sc(
         kleft(
-          list_sc(opt_sc(Expression), tok(TokenKind.Comma)),
-          opt_sc(tok(TokenKind.Comma))
+          list_sc(opt_sc(Expression), tok(TokenKind.Newline)),
+          opt_sc(tok(TokenKind.Newline))
         )
       ),
       tok(TokenKind.RightParen)
@@ -256,7 +257,7 @@ FunctionCall.setPattern(
 );
 
 Expression.setPattern(
-  alt(FunctionCall, AssignmentExpression, FunctionExpression)
+  alt_sc(FunctionExpression, FunctionCall, AssignmentExpression)
 );
 
 Statement.setPattern(alt(Expression, VariableDeclaration));

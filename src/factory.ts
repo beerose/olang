@@ -77,7 +77,7 @@ export function FunctionBody(statements: ast.Statement[]): ast.FunctionBody {
   } as const;
 }
 
-export function FunctionCallExpression(
+export function CallExpression(
   name: ast.Identifier,
   args: ast.Expression[]
 ): ast.FunctionCall {

@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { expectEOF, expectSingleResult, ParseError } from "typescript-parsec";
-
-import * as parser from "./parser";
+import { ParseError } from "typescript-parsec";
 
 import { SyntaxKind, Node } from "./ast";
-import { TokenKind, lexer } from "./lexer";
+import * as ast from "./ast";
+import { TokenKind } from "./lexer";
+import { parse } from "./test/test-utils";
 import {
   BinaryExpression,
   UnaryExpression,
@@ -14,55 +14,18 @@ import {
   FunctionExpression,
   FunctionParameters,
   FunctionBody,
-  FunctionCallExpression,
+  CallExpression,
+  Program,
 } from "./factory";
 
 function isParseError(err: unknown): err is ParseError {
   return typeof err === "object" && err !== null && "errorMessage" in err;
 }
 
-function parseExpr(input: string) {
-  return expectSingleResult(
-    expectEOF(parser.Expression.parse(lexer.parse(input)))
-  );
-}
+const expectParsed = (expression: string, expected: Node) => {
+  if (!("statements" in expected)) expected = Program([expected]);
 
-function parseStat(input: string) {
-  return expectSingleResult(
-    expectEOF(parser.Statement.parse(lexer.parse(input)))
-  );
-}
-
-function parseProgram(input: string) {
-  return expectSingleResult(
-    expectEOF(parser.Program.parse(lexer.parse(input)))
-  );
-}
-
-type Parser = typeof parseExpr | typeof parseStat | typeof parseProgram;
-
-const expectParsed = (
-  expression: string,
-  expected: Node,
-  parser: Parser = parseExpr
-) => {
-  const results = parser(expression);
-
-  try {
-    expect(results).toStrictEqual(expected);
-  } catch (err) {
-    if (
-      typeof err === "object" &&
-      err !== null &&
-      "errorMessage" in err &&
-      err.errorMessage === "Multiple results are returned."
-    ) {
-      console.dir({ results }, { depth: 99 });
-    }
-
-    console.dir({ results }, { depth: 5 });
-    throw err;
-  }
+  expect(parse(expression).statements).toStrictEqual(expected.statements);
 };
 
 describe("parser", () => {
@@ -277,8 +240,7 @@ describe("parser", () => {
   it("parses variable declarations", () => {
     expectParsed(
       "let a = 1",
-      VariableDeclaration(Identifier("a"), NumericLiteral(1)),
-      parseStat
+      VariableDeclaration(Identifier("a"), NumericLiteral(1))
     );
 
     expectParsed(
@@ -286,8 +248,7 @@ describe("parser", () => {
       VariableDeclaration(
         Identifier("a"),
         BinaryExpression(NumericLiteral(1), TokenKind.Plus, NumericLiteral(2))
-      ),
-      parseStat
+      )
     );
 
     expectParsed(
@@ -303,8 +264,7 @@ describe("parser", () => {
             NumericLiteral(3)
           )
         )
-      ),
-      parseStat
+      )
     );
   });
 
@@ -314,19 +274,6 @@ describe("parser", () => {
       "() => {}",
       FunctionExpression(FunctionParameters([]), FunctionBody([]))
     );
-
-    try {
-      expectParsed(
-        "() => {;;;}",
-        FunctionExpression(FunctionParameters([]), FunctionBody([]))
-      );
-    } catch (err) {
-      if (!isParseError(err)) {
-        throw err;
-      }
-
-      expect(err.message).toContain("Unable to consume token: ;");
-    }
 
     expectParsed(
       "() => 1 + 2 ",
@@ -371,7 +318,10 @@ describe("parser", () => {
     );
 
     expectParsed(
-      "(b, c) => { b + c; b - c }",
+      `(b, c) => {
+          b + c
+          b - c
+       }`,
       FunctionExpression(
         FunctionParameters([Identifier("b"), Identifier("c")]),
         FunctionBody([
@@ -382,7 +332,10 @@ describe("parser", () => {
     );
 
     expectParsed(
-      "(b, c) => { let x = b + c; x }",
+      `(b, c) => {
+          let x = b + c
+          x
+       }`,
       FunctionExpression(
         FunctionParameters([Identifier("b"), Identifier("c")]),
         FunctionBody([
@@ -402,8 +355,7 @@ describe("parser", () => {
       VariableDeclaration(
         Identifier("a"),
         FunctionExpression(FunctionParameters([]), NumericLiteral(1))
-      ),
-      parseStat
+      )
     );
 
     expectParsed(
@@ -414,8 +366,7 @@ describe("parser", () => {
           FunctionParameters([Identifier("b")]),
           NumericLiteral(1)
         )
-      ),
-      parseStat
+      )
     );
 
     expectParsed(
@@ -428,30 +379,23 @@ describe("parser", () => {
             BinaryExpression(Identifier("b"), TokenKind.Plus, Identifier("c")),
           ])
         )
-      ),
-      parseStat
+      )
     );
   });
 
   it("parses function calls", () => {
-    expectParsed("a()", FunctionCallExpression(Identifier("a"), []));
+    expectParsed("a()", CallExpression(Identifier("a"), []));
 
-    expectParsed(
-      "a(b)",
-      FunctionCallExpression(Identifier("a"), [Identifier("b")])
-    );
+    expectParsed("a(b)", CallExpression(Identifier("a"), [Identifier("b")]));
 
     expectParsed(
       "a(b, c)",
-      FunctionCallExpression(Identifier("a"), [
-        Identifier("b"),
-        Identifier("c"),
-      ])
+      CallExpression(Identifier("a"), [Identifier("b"), Identifier("c")])
     );
 
     expectParsed(
       "a(b, c, d)",
-      FunctionCallExpression(Identifier("a"), [
+      CallExpression(Identifier("a"), [
         Identifier("b"),
         Identifier("c"),
         Identifier("d"),
@@ -460,69 +404,21 @@ describe("parser", () => {
 
     expectParsed(
       "a(1 + 2)",
-      FunctionCallExpression(Identifier("a"), [
+      CallExpression(Identifier("a"), [
         BinaryExpression(NumericLiteral(1), TokenKind.Plus, NumericLiteral(2)),
       ])
     );
 
     expectParsed(
       "a(b + c)",
-      FunctionCallExpression(Identifier("a"), [
+      CallExpression(Identifier("a"), [
         BinaryExpression(Identifier("b"), TokenKind.Plus, Identifier("c")),
       ])
     );
 
     expectParsed(
       "a(b, c + d)",
-      FunctionCallExpression(Identifier("a"), [
-        Identifier("b"),
-        BinaryExpression(Identifier("c"), TokenKind.Plus, Identifier("d")),
-      ])
-    );
-  });
-
-  it("parses function call statements", () => {
-    expectParsed("a()", FunctionCallExpression(Identifier("a"), []), parseStat);
-
-    expectParsed(
-      "a(b)",
-      FunctionCallExpression(Identifier("a"), [Identifier("b")])
-    );
-
-    expectParsed(
-      "a(b, c)",
-      FunctionCallExpression(Identifier("a"), [
-        Identifier("b"),
-        Identifier("c"),
-      ])
-    );
-
-    expectParsed(
-      "a(b, c, d)",
-      FunctionCallExpression(Identifier("a"), [
-        Identifier("b"),
-        Identifier("c"),
-        Identifier("d"),
-      ])
-    );
-
-    expectParsed(
-      "a(1 + 2)",
-      FunctionCallExpression(Identifier("a"), [
-        BinaryExpression(NumericLiteral(1), TokenKind.Plus, NumericLiteral(2)),
-      ])
-    );
-
-    expectParsed(
-      "a(b + c)",
-      FunctionCallExpression(Identifier("a"), [
-        BinaryExpression(Identifier("b"), TokenKind.Plus, Identifier("c")),
-      ])
-    );
-
-    expectParsed(
-      "a(b, c + d)",
-      FunctionCallExpression(Identifier("a"), [
+      CallExpression(Identifier("a"), [
         Identifier("b"),
         BinaryExpression(Identifier("c"), TokenKind.Plus, Identifier("d")),
       ])
@@ -530,29 +426,28 @@ describe("parser", () => {
   });
 
   it("parses programs", () => {
-    expectParsed(
-      "let a = 1",
-      {
-        kind: SyntaxKind.Program,
-        statements: [VariableDeclaration(Identifier("a"), NumericLiteral(1))],
-      },
-      parseProgram
-    );
+    expectParsed("let a = 1", {
+      kind: SyntaxKind.Program,
+      statements: [VariableDeclaration(Identifier("a"), NumericLiteral(1))],
+    });
 
     expectParsed(
-      "let a = 1; let b = 2",
+      `let a = 1
+       let b = 2`,
       {
         kind: SyntaxKind.Program,
         statements: [
           VariableDeclaration(Identifier("a"), NumericLiteral(1)),
           VariableDeclaration(Identifier("b"), NumericLiteral(2)),
         ],
-      },
-      parseProgram
+      }
     );
 
     expectParsed(
-      "let a = 1; let b = 2; let c = 3",
+      `let a = 1
+       let b = 2
+       let c = 3
+      `,
       {
         kind: SyntaxKind.Program,
         statements: [
@@ -560,12 +455,14 @@ describe("parser", () => {
           VariableDeclaration(Identifier("b"), NumericLiteral(2)),
           VariableDeclaration(Identifier("c"), NumericLiteral(3)),
         ],
-      },
-      parseProgram
+      }
     );
 
     expectParsed(
-      "let a = 1; let b = 2; let c = 3; let d = 4",
+      `let a = 1
+       let b = 2
+       let c = 3
+       let d = 4`,
       {
         kind: SyntaxKind.Program,
         statements: [
@@ -574,12 +471,13 @@ describe("parser", () => {
           VariableDeclaration(Identifier("c"), NumericLiteral(3)),
           VariableDeclaration(Identifier("d"), NumericLiteral(4)),
         ],
-      },
-      parseProgram
+      }
     );
 
     expectParsed(
-      "let a = () => 1; let b = a; let c = (d) => { a + 10 };",
+      `let a = () => 1
+       let b = a
+       let c = (d) => { a + 10 }`,
       {
         kind: SyntaxKind.Program,
         statements: [
@@ -602,8 +500,7 @@ describe("parser", () => {
             )
           ),
         ],
-      },
-      parseProgram
+      }
     );
   });
 });
