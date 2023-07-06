@@ -52,7 +52,7 @@ export function VariableDeclaration(
 
 export function FunctionExpression(
   parameters: ast.FunctionParameters,
-  body: ast.Expression | ast.FunctionBody
+  body: ast.Expression | ast.Statement[]
 ): ast.FunctionExpression {
   return {
     kind: ast.SyntaxKind.Function,
@@ -67,13 +67,6 @@ export function FunctionParameters(
   return {
     kind: ast.SyntaxKind.FunctionParameters,
     parameters,
-  } as const;
-}
-
-export function FunctionBody(statements: ast.Statement[]): ast.FunctionBody {
-  return {
-    kind: ast.SyntaxKind.FunctionBody,
-    statements,
   } as const;
 }
 

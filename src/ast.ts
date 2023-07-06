@@ -9,10 +9,7 @@ export enum SyntaxKind {
   Function = "Function",
   FunctionParameters = "FunctionParameters",
   FunctionCall = "FunctionCall",
-  FunctionBody = "FunctionBody",
   Program = "Program",
-  PrintStatement = "PrintStatement",
-  ExpressionStatement = "ExpressionStatement",
 }
 
 export interface BaseNode {
@@ -59,12 +56,7 @@ export interface VariableDeclaration extends BaseNode {
 export interface FunctionExpression extends BaseNode {
   kind: SyntaxKind.Function;
   parameters: FunctionParameters;
-  body: FunctionBody | Expression;
-}
-
-export interface FunctionBody extends BaseNode {
-  kind: SyntaxKind.FunctionBody;
-  statements: Statement[];
+  body: Statement[] | Expression;
 }
 
 export interface FunctionParameters extends BaseNode {
@@ -83,7 +75,7 @@ export interface Program extends BaseNode {
   statements: Statement[];
 }
 
-export type Node = Program | Expression | FunctionBody | Statement;
+export type Node = Program | Expression | Statement;
 
 export type Expression =
   | NumericLiteral

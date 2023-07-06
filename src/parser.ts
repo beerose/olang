@@ -3,8 +3,6 @@ import {
   alt,
   alt_sc,
   apply,
-  expectEOF,
-  expectSingleResult,
   kleft,
   kmid,
   list_sc,
@@ -32,9 +30,8 @@ const PowerExpression = rule<TokenKind, ast.Expression>();
 const AdditiveExpression = rule<TokenKind, ast.Expression>();
 const AssignmentExpression = rule<TokenKind, ast.Expression>();
 const VariableDeclaration = rule<TokenKind, ast.VariableDeclaration>();
-const FunctionParametersDeclaration = rule<TokenKind, ast.FunctionParameters>();
+const FunctionParameters = rule<TokenKind, ast.FunctionParameters>();
 const FunctionExpression = rule<TokenKind, ast.FunctionExpression>();
-const FunctionBody = rule<TokenKind, ast.FunctionBody>();
 const FunctionCall = rule<TokenKind, ast.FunctionCall>();
 const FunctionCallArguments = rule<TokenKind, ast.Expression[]>();
 
@@ -166,7 +163,7 @@ VariableDeclaration.setPattern(
   )
 );
 
-FunctionParametersDeclaration.setPattern(
+FunctionParameters.setPattern(
   apply(
     seq(
       tok(TokenKind.LeftParen),
@@ -193,36 +190,29 @@ FunctionParametersDeclaration.setPattern(
   )
 );
 
-FunctionBody.setPattern(
-  apply(
-    seq(
-      tok(TokenKind.LeftBrace),
-      opt_sc(
-        kleft(
-          list_sc(Statement, opt_sc(tok(TokenKind.Semicolon))),
-          opt_sc(tok(TokenKind.Semicolon))
-        )
-      ),
-      tok(TokenKind.RightBrace)
-    ),
-    ([, expressions = []]): ast.FunctionBody => ({
-      kind: SyntaxKind.FunctionBody,
-      statements: expressions.filter((e): e is ast.Expression => !!e),
-    })
-  )
-);
-
 FunctionExpression.setPattern(
   apply(
     seq(
-      FunctionParametersDeclaration,
+      FunctionParameters,
       tok(TokenKind.Arrow),
-      alt(FunctionBody, Expression)
+      alt(
+        Expression,
+        seq(
+          tok(TokenKind.LeftBrace),
+          opt_sc(
+            kleft(
+              list_sc(Statement, opt_sc(tok(TokenKind.Semicolon))),
+              opt_sc(tok(TokenKind.Semicolon))
+            )
+          ),
+          tok(TokenKind.RightBrace)
+        )
+      )
     ),
     ([parameters, , body]): ast.FunctionExpression => ({
       kind: SyntaxKind.Function,
       parameters,
-      body,
+      body: Array.isArray(body) ? body[1] || [] : [body],
     })
   )
 );
@@ -281,9 +271,10 @@ Program.setPattern(
 );
 
 export function parse(expr: string) {
-  return Program.parse(lexer.parse(expr));
-}
-
-export function printAST(expr: string) {
-  return expectSingleResult(expectEOF(parse(expr)));
+  const parsed = Program.parse(lexer.parse(expr));
+  if (parsed.successful) {
+    return parsed.candidates[0]?.result!;
+  } else {
+    return parsed.error;
+  }
 }
