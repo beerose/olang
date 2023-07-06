@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { expectEOF, expectSingleResult } from "typescript-parsec";
+import { expectEOF, expectSingleResult, ParseError } from "typescript-parsec";
 
 import * as parser from "./parser";
 
@@ -15,8 +15,11 @@ import {
   FunctionParameters,
   FunctionBody,
   FunctionCallExpression,
-  ExpressionStatement,
 } from "./factory";
+
+function isParseError(err: unknown): err is ParseError {
+  return typeof err === "object" && err !== null && "errorMessage" in err;
+}
 
 function parseExpr(input: string) {
   return expectSingleResult(
@@ -307,6 +310,25 @@ describe("parser", () => {
 
   it("parses function expression", () => {
     expectParsed(
+      // noop
+      "() => {}",
+      FunctionExpression(FunctionParameters([]), FunctionBody([]))
+    );
+
+    try {
+      expectParsed(
+        "() => {;;;}",
+        FunctionExpression(FunctionParameters([]), FunctionBody([]))
+      );
+    } catch (err) {
+      if (!isParseError(err)) {
+        throw err;
+      }
+
+      expect(err.message).toContain("Unable to consume token: ;");
+    }
+
+    expectParsed(
       "() => 1 + 2 ",
       FunctionExpression(
         FunctionParameters([]),
@@ -343,9 +365,7 @@ describe("parser", () => {
       FunctionExpression(
         FunctionParameters([Identifier("b"), Identifier("c")]),
         FunctionBody([
-          ExpressionStatement(
-            BinaryExpression(Identifier("b"), TokenKind.Plus, Identifier("c"))
-          ),
+          BinaryExpression(Identifier("b"), TokenKind.Plus, Identifier("c")),
         ])
       )
     );
@@ -355,12 +375,8 @@ describe("parser", () => {
       FunctionExpression(
         FunctionParameters([Identifier("b"), Identifier("c")]),
         FunctionBody([
-          ExpressionStatement(
-            BinaryExpression(Identifier("b"), TokenKind.Plus, Identifier("c"))
-          ),
-          ExpressionStatement(
-            BinaryExpression(Identifier("b"), TokenKind.Minus, Identifier("c"))
-          ),
+          BinaryExpression(Identifier("b"), TokenKind.Plus, Identifier("c")),
+          BinaryExpression(Identifier("b"), TokenKind.Minus, Identifier("c")),
         ])
       )
     );
@@ -374,7 +390,7 @@ describe("parser", () => {
             Identifier("x"),
             BinaryExpression(Identifier("b"), TokenKind.Plus, Identifier("c"))
           ),
-          ExpressionStatement(Identifier("x")),
+          Identifier("x"),
         ])
       )
     );
@@ -409,9 +425,7 @@ describe("parser", () => {
         FunctionExpression(
           FunctionParameters([Identifier("b"), Identifier("c")]),
           FunctionBody([
-            ExpressionStatement(
-              BinaryExpression(Identifier("b"), TokenKind.Plus, Identifier("c"))
-            ),
+            BinaryExpression(Identifier("b"), TokenKind.Plus, Identifier("c")),
           ])
         )
       ),
@@ -468,76 +482,50 @@ describe("parser", () => {
   });
 
   it("parses function call statements", () => {
-    expectParsed(
-      "a()",
-      ExpressionStatement(FunctionCallExpression(Identifier("a"), [])),
-      parseStat
-    );
+    expectParsed("a()", FunctionCallExpression(Identifier("a"), []), parseStat);
 
     expectParsed(
       "a(b)",
-      ExpressionStatement(
-        FunctionCallExpression(Identifier("a"), [Identifier("b")])
-      ),
-      parseStat
+      FunctionCallExpression(Identifier("a"), [Identifier("b")])
     );
 
     expectParsed(
       "a(b, c)",
-      ExpressionStatement(
-        FunctionCallExpression(Identifier("a"), [
-          Identifier("b"),
-          Identifier("c"),
-        ])
-      ),
-      parseStat
+      FunctionCallExpression(Identifier("a"), [
+        Identifier("b"),
+        Identifier("c"),
+      ])
     );
 
     expectParsed(
       "a(b, c, d)",
-      ExpressionStatement(
-        FunctionCallExpression(Identifier("a"), [
-          Identifier("b"),
-          Identifier("c"),
-          Identifier("d"),
-        ])
-      ),
-      parseStat
+      FunctionCallExpression(Identifier("a"), [
+        Identifier("b"),
+        Identifier("c"),
+        Identifier("d"),
+      ])
     );
 
     expectParsed(
       "a(1 + 2)",
-      ExpressionStatement(
-        FunctionCallExpression(Identifier("a"), [
-          BinaryExpression(
-            NumericLiteral(1),
-            TokenKind.Plus,
-            NumericLiteral(2)
-          ),
-        ])
-      ),
-      parseStat
+      FunctionCallExpression(Identifier("a"), [
+        BinaryExpression(NumericLiteral(1), TokenKind.Plus, NumericLiteral(2)),
+      ])
     );
 
     expectParsed(
       "a(b + c)",
-      ExpressionStatement(
-        FunctionCallExpression(Identifier("a"), [
-          BinaryExpression(Identifier("b"), TokenKind.Plus, Identifier("c")),
-        ])
-      ),
-      parseStat
+      FunctionCallExpression(Identifier("a"), [
+        BinaryExpression(Identifier("b"), TokenKind.Plus, Identifier("c")),
+      ])
     );
 
     expectParsed(
       "a(b, c + d)",
-      ExpressionStatement(
-        FunctionCallExpression(Identifier("a"), [
-          Identifier("b"),
-          BinaryExpression(Identifier("c"), TokenKind.Plus, Identifier("d")),
-        ])
-      ),
-      parseStat
+      FunctionCallExpression(Identifier("a"), [
+        Identifier("b"),
+        BinaryExpression(Identifier("c"), TokenKind.Plus, Identifier("d")),
+      ])
     );
   });
 
@@ -605,12 +593,10 @@ describe("parser", () => {
             FunctionExpression(
               FunctionParameters([Identifier("d")]),
               FunctionBody([
-                ExpressionStatement(
-                  BinaryExpression(
-                    Identifier("a"),
-                    TokenKind.Plus,
-                    NumericLiteral(10)
-                  )
+                BinaryExpression(
+                  Identifier("a"),
+                  TokenKind.Plus,
+                  NumericLiteral(10)
                 ),
               ])
             )

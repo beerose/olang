@@ -38,8 +38,6 @@ const FunctionCall = rule<TokenKind, ast.FunctionCall>();
 const FunctionCallArguments = rule<TokenKind, ast.Expression[]>();
 
 export const Statement = rule<TokenKind, ast.Statement>();
-export const ExpressionStatement = rule<TokenKind, ast.ExpressionStatement>();
-export const PrintStatement = rule<TokenKind, ast.PrintStatement>();
 export const Program = rule<TokenKind, ast.Program>();
 
 NumericLiteral.setPattern(
@@ -200,7 +198,7 @@ FunctionBody.setPattern(
       tok(TokenKind.LeftBrace),
       opt_sc(
         kleft(
-          list_sc(opt_sc(Statement), opt_sc(tok(TokenKind.Semicolon))),
+          list_sc(Statement, opt_sc(tok(TokenKind.Semicolon))),
           opt_sc(tok(TokenKind.Semicolon))
         )
       ),
@@ -208,7 +206,7 @@ FunctionBody.setPattern(
     ),
     ([, expressions = []]): ast.FunctionBody => ({
       kind: SyntaxKind.FunctionBody,
-      statements: expressions.filter((e): e is ast.ExpressionStatement => !!e),
+      statements: expressions.filter((e): e is ast.Expression => !!e),
     })
   )
 );
@@ -261,29 +259,7 @@ Expression.setPattern(
   alt(FunctionCall, AssignmentExpression, FunctionExpression)
 );
 
-PrintStatement.setPattern(
-  apply(
-    seq(tok(TokenKind.PrintKeyword), Expression),
-    ([, expression]): ast.PrintStatement => ({
-      kind: SyntaxKind.PrintStatement,
-      expression,
-    })
-  )
-);
-
-ExpressionStatement.setPattern(
-  apply(
-    seq(Expression, opt_sc(tok(TokenKind.Semicolon))),
-    ([expression]): ast.ExpressionStatement => ({
-      kind: SyntaxKind.ExpressionStatement,
-      expression,
-    })
-  )
-);
-
-Statement.setPattern(
-  alt(PrintStatement, ExpressionStatement, VariableDeclaration)
-);
+Statement.setPattern(alt(Expression, VariableDeclaration));
 
 Program.setPattern(
   apply(

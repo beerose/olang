@@ -88,15 +88,6 @@ export function FunctionCallExpression(
   } as const;
 }
 
-export function ExpressionStatement(
-  expression: ast.Expression
-): ast.ExpressionStatement {
-  return {
-    kind: ast.SyntaxKind.ExpressionStatement,
-    expression,
-  } as const;
-}
-
 export function Program(statements: ast.Statement[]): ast.Program {
   return {
     kind: ast.SyntaxKind.Program,

@@ -83,22 +83,7 @@ export interface Program extends BaseNode {
   statements: Statement[];
 }
 
-export interface PrintStatement extends BaseNode {
-  kind: SyntaxKind.PrintStatement;
-  expression: Expression;
-}
-
-export interface ExpressionStatement extends BaseNode {
-  kind: SyntaxKind.ExpressionStatement;
-  expression: Expression;
-}
-
-export type Node =
-  | Program
-  | Expression
-  | FunctionBody
-  | Statement
-  | VariableDeclaration;
+export type Node = Program | Expression | FunctionBody | Statement;
 
 export type Expression =
   | NumericLiteral
@@ -108,7 +93,4 @@ export type Expression =
   | FunctionExpression
   | FunctionCall;
 
-export type Statement =
-  | PrintStatement
-  | ExpressionStatement
-  | VariableDeclaration;
+export type Statement = Expression | VariableDeclaration;
