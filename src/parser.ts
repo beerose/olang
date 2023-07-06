@@ -33,7 +33,6 @@ const FunctionExpression = rule<TokenKind, ast.FunctionExpression>();
 const FunctionCall = rule<TokenKind, ast.FunctionCall>();
 const FunctionCallArguments = rule<TokenKind, ast.Expression[]>();
 
-export const Statement = rule<TokenKind, ast.Statement>();
 export const Program = rule<TokenKind, ast.Program>();
 
 NumericLiteral.setPattern(
@@ -151,7 +150,7 @@ VariableDeclaration.setPattern(
       tok(TokenKind.LetKeyword),
       Identifier,
       tok(TokenKind.Equals),
-      alt(AssignmentExpression, FunctionExpression)
+      Expression
     ),
     ([, identifier, , initializer]): ast.VariableDeclaration => ({
       kind: "VariableDeclaration",
@@ -179,7 +178,7 @@ FunctionExpression.setPattern(
           tok(TokenKind.LeftBrace),
           opt_sc(
             kleft(
-              list_sc(Statement, opt_sc(tok(TokenKind.Newline))),
+              list_sc(Expression, opt_sc(tok(TokenKind.Newline))),
               opt_sc(tok(TokenKind.Newline))
             )
           ),
@@ -188,7 +187,7 @@ FunctionExpression.setPattern(
       )
     ),
     ([, parameters, , , body]): ast.FunctionExpression => ({
-      kind: "Function",
+      kind: "FunctionExpression",
       parameters: parameters?.filter((p): p is ast.Identifier => !!p) || [],
       body: Array.isArray(body) ? body[1] || [] : [body],
     })
@@ -225,25 +224,28 @@ FunctionCall.setPattern(
 );
 
 Expression.setPattern(
-  alt_sc(FunctionExpression, FunctionCall, AssignmentExpression)
+  alt_sc(
+    FunctionExpression,
+    FunctionCall,
+    VariableDeclaration,
+    AssignmentExpression
+  )
 );
-
-Statement.setPattern(alt(Expression, VariableDeclaration));
 
 Program.setPattern(
   apply(
     seq(
       opt_sc(
         kleft(
-          list_sc(opt_sc(Statement), opt_sc(tok(TokenKind.Semicolon))),
-          opt_sc(tok(TokenKind.Semicolon))
+          list_sc(opt_sc(Expression), opt_sc(tok(TokenKind.Newline))),
+          opt_sc(tok(TokenKind.Newline))
         )
       ),
-      opt_sc(tok(TokenKind.Semicolon))
+      opt_sc(tok(TokenKind.Newline))
     ),
     ([statements = []]): ast.Program => ({
       kind: "Program",
-      statements: statements.filter((e): e is ast.Statement => !!e),
+      statements: statements.filter((e): e is ast.Expression => !!e),
     })
   )
 );

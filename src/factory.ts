@@ -52,10 +52,10 @@ export function VariableDeclaration(
 
 export function FunctionExpression(
   parameters: ast.Identifier[],
-  body: ast.Expression | ast.Statement[]
+  body: ast.Expression[]
 ): ast.FunctionExpression {
   return {
-    kind: "Function",
+    kind: "FunctionExpression",
     parameters,
     body,
   } as const;
@@ -72,7 +72,7 @@ export function CallExpression(
   } as const;
 }
 
-export function Program(statements: ast.Statement[]): ast.Program {
+export function Program(statements: ast.Expression[]): ast.Program {
   return {
     kind: "Program",
     statements,

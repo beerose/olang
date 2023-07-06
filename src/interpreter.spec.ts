@@ -1,14 +1,17 @@
 import { describe, expect, it } from "vitest";
-import { evaluate } from "./interpreter";
-import { printAST } from "./parser";
+import { interpret } from "./interpreter";
+import { parse } from "./test/test-utils";
 
-const expectEvaluated = (expr: string, expected: number) => {
-  const ast = printAST(expr);
-  expect(evaluate(ast)).toBe(expected);
+const expectEvaluated = (source: string, expected: unknown) => {
+  expect(interpret(parse(source))).toBe(expected);
 };
 
-describe("evaluate", () => {
-  it("evaluates simple binary expressions", () => {
+describe(interpret, () => {
+  it("evaluates arithmetic", () => {
+    expectEvaluated("1", 1);
+
+    expectEvaluated("2 + 3", 5);
+
     expectEvaluated("1 + 1", 2);
 
     expectEvaluated("1 + 2 * 3", 7);
@@ -32,11 +35,34 @@ describe("evaluate", () => {
     expectEvaluated("1 + 2 * (3 + 4)", 15);
 
     expectEvaluated("2 * 3 ** 2", 18);
-  });
 
-  it("evaluates unary expressions", () => {
     expectEvaluated("-1", -1);
 
     expectEvaluated("-1 + 2", 1);
+  });
+
+  it("evaluates functions", () => {
+    expectEvaluated(
+      `
+      let inc = (x) => x + 1
+      inc(1)
+      `,
+      2
+    );
+
+    expectEvaluated(
+      `
+      let square = (x) => {
+        x ** 2
+      }
+      let inc = (x) => x + 1
+      let main = (x) => {
+        let y = inc(x)
+        square(y)
+      }
+      main(11)
+      `,
+      144
+    );
   });
 });

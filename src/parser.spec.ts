@@ -244,6 +244,14 @@ describe("parser", () => {
     );
 
     expectParsed(
+      "let a = inc(1)",
+      VariableDeclaration(
+        Identifier("a"),
+        CallExpression(Identifier("inc"), [NumericLiteral(1)])
+      )
+    );
+
+    expectParsed(
       "let a = 1 + 2 * 3",
       VariableDeclaration(
         Identifier("a"),

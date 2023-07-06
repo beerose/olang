@@ -15,10 +15,9 @@ const expressionColors: { [key in ast.SyntaxKind]: string } = {
   NumericLiteral: "red",
   Identifier: "purple",
   VariableDeclaration: "midnightblue",
-  Function: "brown",
-  FunctionParameters: "pink",
+  FunctionExpression: "brown",
   FunctionCall: "gray",
-  Program: "lightblue",
+  Program: "magenta",
 };
 
 const renderNode = (node: ast.Node, indentLevel: number) => {

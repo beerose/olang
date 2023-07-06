@@ -6,7 +6,7 @@ export type SyntaxKind =
   | "NumericLiteral"
   | "Identifier"
   | "VariableDeclaration"
-  | "Function"
+  | "FunctionExpression"
   | "FunctionCall"
   | "Program";
 
@@ -52,9 +52,9 @@ export interface VariableDeclaration extends BaseNode {
 }
 
 export interface FunctionExpression extends BaseNode {
-  kind: "Function";
+  kind: "FunctionExpression";
   parameters: Identifier[];
-  body: Statement[] | Expression;
+  body: Expression[];
 }
 
 export interface FunctionCall extends BaseNode {
@@ -65,10 +65,10 @@ export interface FunctionCall extends BaseNode {
 
 export interface Program extends BaseNode {
   kind: "Program";
-  statements: Statement[];
+  statements: Expression[];
 }
 
-export type Node = Program | Expression | Statement;
+export type Node = Program | Expression;
 
 export type Expression =
   | NumericLiteral
@@ -76,6 +76,5 @@ export type Expression =
   | UnaryExpression
   | Identifier
   | FunctionExpression
-  | FunctionCall;
-
-export type Statement = Expression | VariableDeclaration;
+  | FunctionCall
+  | VariableDeclaration;
