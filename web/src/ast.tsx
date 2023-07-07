@@ -30,15 +30,11 @@ const renderNode = (node: ast.Node, indentLevel: number) => {
       }}
     >
       <table
-        style={{
-          border: "1px solid black",
-          width: indentLevel > 0 ? "100%" : "inherit",
-          background: "white",
-        }}
+        className={`border border-black ${indentLevel > 0 ? "w-full" : ""}`}
       >
         <tbody>
           <tr>
-            <td style={{ fontWeight: "bold", borderBottom: "1px solid black" }}>
+            <td className="font-extrabold border-b border-black p-2 pb-1 pr-1">
               {node.kind}
             </td>
           </tr>
@@ -48,8 +44,12 @@ const renderNode = (node: ast.Node, indentLevel: number) => {
               if (Array.isArray(value)) {
                 return (
                   <tr key={key}>
-                    <td>
-                      {key}:
+                    <td className="p-2 pb-1 pr-1">
+                      <span
+                        style={{ marginLeft: `${(indentLevel + 1) * 20}px` }}
+                      >
+                        {key}:
+                      </span>
                       {value.map((item, i) => (
                         <div key={`${key}-${i}`}>
                           {renderNode(item, indentLevel + 1)}
@@ -61,15 +61,20 @@ const renderNode = (node: ast.Node, indentLevel: number) => {
               } else if (typeof value === "object" && value !== null) {
                 return (
                   <tr key={key}>
-                    <td>
-                      {key}:{renderNode(value, indentLevel + 1)}
+                    <td className="p-2 pb-1 pr-1">
+                      <span
+                        style={{ marginLeft: `${(indentLevel + 1) * 20}px` }}
+                      >
+                        {key}:
+                      </span>
+                      {renderNode(value, indentLevel + 1)}
                     </td>
                   </tr>
                 );
               } else {
                 return (
                   <tr key={key}>
-                    <td>
+                    <td className="p-2 pb-1 pr-1">
                       {key}: {value}
                     </td>
                   </tr>

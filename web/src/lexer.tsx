@@ -55,24 +55,9 @@ export function Lexer({
   }, [code, setLexerOutput]);
 
   return (
-    <div
-      style={{
-        padding: "12px 0",
-        overflow: "scroll",
-        height: "74px",
-      }}
-    >
+    <div className="overflow-scroll text-center flex flex-wrap">
       {error ? (
-        <div
-          style={{
-            color: "red",
-            background: "white",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "flex-start",
-            padding: "12px",
-          }}
-        >
+        <div className="text-left text-red-500 flex flex-col items-start p-3">
           {error.errorMessage}
           <span>
             Row: {error.pos?.rowBegin}:{error.pos?.rowEnd} Col:{" "}
@@ -86,30 +71,19 @@ export function Lexer({
               {tokens?.map((token, i) => (
                 <td
                   key={i}
-                  style={{
-                    color: tokenColors[token.kind],
-                    background: "white",
-
-                    height: "1rem",
-                    border: "1px solid #ddd",
-                    padding: "4px",
-                  }}
+                  className="border border-black p-3 font-extrabold"
+                  style={{ color: tokenColors[token.kind] }}
                 >
                   {token.text}
                 </td>
               ))}
             </tr>
-            <tr style={{ height: "1rem" }}>
+            <tr>
               {tokens?.map((token, i) => (
                 <td
                   key={i}
-                  style={{
-                    color: tokenColors[token.kind],
-                    background: "white",
-                    height: "1rem",
-                    border: "1px solid #ddd",
-                    padding: "4px",
-                  }}
+                  className="border border-black p-3 font-extrabold"
+                  style={{ color: tokenColors[token.kind] }}
                 >
                   {tokenToDisplayName[token.kind]}
                 </td>
