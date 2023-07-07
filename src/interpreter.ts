@@ -57,10 +57,31 @@ export function visit(
   }
 }
 
-interface Scope {
-  parent: Scope | null;
-  bindings: Record<string, unknown>;
+// #region debugger
+export function astDebugger(events: EvaluationEvents) {
+  return function debug(
+    node: ast.Node,
+    scope: Scope,
+    code: string,
+    value: unknown
+  ) {
+    events.push({
+      kind: node.kind,
+      nid: (node as any).id,
+      scope: scope,
+      code,
+      value,
+    });
+  };
 }
+
+export type EvaluationEvents = Array<{
+  kind: ast.SyntaxKind;
+  nid: number;
+  scope: Scope;
+  code: string;
+  value: unknown;
+}>;
 
 function printScope(scope: Scope) {
   if (scope.parent) printScope(scope.parent!);
@@ -68,13 +89,18 @@ function printScope(scope: Scope) {
   for (const key in scope.bindings) {
     const value = scope.bindings[key];
     console.log(
-      key,
-      "=",
+      `[${key}]:`,
       typeof value === "object" && "kind" in (value as ast.Node)
         ? printAst(value as ast.Node)
         : value
     );
   }
+}
+// #endregion
+
+interface Scope {
+  parent: Scope | null;
+  bindings: Record<string, unknown>;
 }
 
 function getBinding(scope: Scope, name: string): unknown {
@@ -83,14 +109,12 @@ function getBinding(scope: Scope, name: string): unknown {
   throw new Error(`Undefined variable: ${name}`);
 }
 
-type Result = any;
+type Result = any; // todo
 
-export function interpret(programAst: ast.Program): Result {
-  let scope: Scope = {
-    parent: null,
-    bindings: {},
-  };
-
+export function interpret(
+  programAst: ast.Program,
+  debug?: ReturnType<typeof astDebugger>
+): Result {
   function createFunctionScope(node: ast.FunctionCall, scope: Readonly<Scope>) {
     const functionName = node.name.name;
     const functionDeclaration = getBinding(
@@ -117,32 +141,48 @@ export function interpret(programAst: ast.Program): Result {
   }
 
   function evaluate(node: ast.Node, scope: Scope): Result {
-    console.log("evaluate", node);
     switch (node.kind) {
       case "Identifier":
-        return getBinding(scope, node.name);
+        const value = getBinding(scope, node.name);
+        debug?.(node, scope, node.name, value);
+
+        return value;
       case "NumericLiteral":
+        debug?.(node, scope, node.value.toString(), node.value);
+
         return node.value;
       case "UnaryExpression":
         const operand = evaluate(node.operand, scope);
+        debug?.(node, scope, printAst(node), -operand);
+
         return -operand;
       case "BinaryExpression":
         const left = evaluate(node.left, scope);
         const right = evaluate(node.right, scope);
+
+        let binaryResult: Result = null;
         switch (node.operator) {
           case TokenKind.Plus:
-            return left + right;
+            binaryResult = left + right;
+            break;
           case TokenKind.Minus:
-            return left - right;
+            binaryResult = left - right;
+            break;
           case TokenKind.Asterisk:
-            return left * right;
+            binaryResult = left * right;
+            break;
           case TokenKind.RightSlash:
-            return left / right;
+            binaryResult = left / right;
+            break;
           case TokenKind.AsteriskAsterisk:
-            return left ** right;
+            binaryResult = left ** right;
+            break;
           default:
             throw new Error(`Unhandled binary operator: ${node.operator}`);
         }
+        debug?.(node, scope, printAst(node), binaryResult);
+
+        return binaryResult;
       case "FunctionCall": {
         let result: Result = null;
         const { fnScope, functionDeclaration } = createFunctionScope(
@@ -150,22 +190,24 @@ export function interpret(programAst: ast.Program): Result {
           scope
         );
 
-        printScope(fnScope);
-
         for (const statement of functionDeclaration.body) {
           result = evaluate(statement, fnScope);
         }
 
+        debug?.(node, scope, printAst(node), result);
         return result;
       }
 
       case "VariableDeclaration": {
         const value = evaluate(node.initializer, scope);
         scope.bindings[node.name.name] = value;
+
+        debug?.(node, scope, printAst(node), value);
         return value;
       }
 
       case "FunctionExpression": {
+        debug?.(node, scope, printAst(node), node);
         return node;
       }
 
@@ -174,11 +216,15 @@ export function interpret(programAst: ast.Program): Result {
         for (const statement of node.statements) {
           result = evaluate(statement, scope);
         }
+
+        debug?.(node, scope, printAst(node), result);
         return result;
       }
     }
   }
 
-  console.log(scope.bindings);
-  return evaluate(programAst, scope);
+  return evaluate(programAst, {
+    parent: null,
+    bindings: {},
+  });
 }
