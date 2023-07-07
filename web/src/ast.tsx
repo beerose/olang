@@ -1,24 +1,24 @@
 import { useEffect, useState } from "react";
 import * as ast from "../../src/ast";
+import {
+  ParseError,
+  Token,
+  expectEOF,
+  expectSingleResult,
+} from "typescript-parsec";
 import { Program } from "../../src/parser";
-import { ParseError, expectEOF, expectSingleResult } from "typescript-parsec";
-import { lexer } from "../../src/lexer";
+import { TokenKind } from "../../src/lexer";
+import { expressionColors } from "./colors";
 
-const printAST = (code: string) => {
-  const ast = Program.parse(lexer.parse(code));
-  return expectSingleResult(expectEOF(ast));
-};
-
-const expressionColors: { [key in ast.SyntaxKind]: string } = {
-  BinaryExpression: "blue",
-  UnaryExpression: "green",
-  NumericLiteral: "red",
-  Identifier: "purple",
-  VariableDeclaration: "midnightblue",
-  FunctionExpression: "brown",
-  FunctionCall: "gray",
-  Program: "magenta",
-};
+function parse(lexerOutput: Token<TokenKind> | undefined) {
+  const parserOutput = Program.parse(lexerOutput);
+  try {
+    return expectSingleResult(expectEOF(parserOutput));
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
+}
 
 const renderNode = (node: ast.Node, indentLevel: number) => {
   const color = expressionColors[node.kind];
@@ -82,11 +82,8 @@ const renderNode = (node: ast.Node, indentLevel: number) => {
   );
 };
 
-interface AstViewerProps {
-  code: string;
-}
-
 export const ParseErrorMsg: React.FC<{ error: ParseError }> = ({ error }) => {
+  // todo: make this prettier
   return (
     <div>
       {error.message} at line {error.pos?.rowBegin} column{" "}
@@ -95,26 +92,40 @@ export const ParseErrorMsg: React.FC<{ error: ParseError }> = ({ error }) => {
   );
 };
 
-export const AstViewer: React.FC<AstViewerProps> = ({ code }) => {
-  const [ast, setAst] = useState<ast.Node | undefined>(undefined);
+interface AstViewerProps {
+  lexerOutput?: Token<TokenKind>;
+  setParserOutput?: (parserOutput: ast.Program) => void;
+}
+
+export const AstViewer: React.FC<AstViewerProps> = ({
+  lexerOutput,
+  setParserOutput,
+}) => {
+  const [ast, setAst] = useState<ast.Program | undefined>(undefined);
   const [error, setError] = useState<ParseError | null>(null);
 
   useEffect(() => {
-    if (!code) return;
+    if (!lexerOutput) return;
     try {
-      const currentAst = printAST(code);
+      const currentAst = parse(lexerOutput);
       setAst(currentAst);
+      setParserOutput?.(currentAst);
+      setError(null);
     } catch (e) {
       if (typeof e === "object" && e !== null && "pos" in e) {
         setError(e as unknown as ParseError);
       }
       console.error(e);
     }
-  }, [code]);
+  }, [lexerOutput, setParserOutput]);
 
   if (error) {
     return <ParseErrorMsg error={error} />;
   }
 
-  return ast ? renderNode(ast, 0) : null;
+  if (!ast) {
+    return null;
+  }
+
+  return renderNode(ast, 0);
 };
