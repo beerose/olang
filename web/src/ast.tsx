@@ -1,24 +1,6 @@
-import { useEffect, useState } from "react";
 import * as ast from "../../src/ast";
-import {
-  ParseError,
-  Token,
-  expectEOF,
-  expectSingleResult,
-} from "typescript-parsec";
-import { Program } from "../../src/parser";
-import { TokenKind } from "../../src/lexer";
+import { ParseError } from "typescript-parsec";
 import { expressionColors } from "./colors";
-
-function parse(lexerOutput: Token<TokenKind> | undefined) {
-  const parserOutput = Program.parse(lexerOutput);
-  try {
-    return expectSingleResult(expectEOF(parserOutput));
-  } catch (err) {
-    console.error(err);
-    throw err;
-  }
-}
 
 const renderNode = (node: ast.Node, indentLevel: number) => {
   const color = expressionColors[node.kind];
@@ -87,7 +69,7 @@ const renderNode = (node: ast.Node, indentLevel: number) => {
   );
 };
 
-export const ParseErrorMsg: React.FC<{ error: ParseError }> = ({ error }) => {
+export const ParseErrorMsg = ({ error }: { error: ParseError }) => {
   // todo: make this prettier
   return (
     <div>
@@ -98,34 +80,13 @@ export const ParseErrorMsg: React.FC<{ error: ParseError }> = ({ error }) => {
 };
 
 interface AstViewerProps {
-  lexerOutput?: Token<TokenKind>;
-  setParserOutput?: (parserOutput: ast.Program) => void;
+  ast: ast.Program | undefined;
+  parseError: ParseError | undefined;
 }
 
-export const AstViewer: React.FC<AstViewerProps> = ({
-  lexerOutput,
-  setParserOutput,
-}) => {
-  const [ast, setAst] = useState<ast.Program | undefined>(undefined);
-  const [error, setError] = useState<ParseError | null>(null);
-
-  useEffect(() => {
-    if (!lexerOutput) return;
-    try {
-      const currentAst = parse(lexerOutput);
-      setAst(currentAst);
-      setParserOutput?.(currentAst);
-      setError(null);
-    } catch (e) {
-      if (typeof e === "object" && e !== null && "pos" in e) {
-        setError(e as unknown as ParseError);
-      }
-      console.error(e);
-    }
-  }, [lexerOutput, setParserOutput]);
-
-  if (error) {
-    return <ParseErrorMsg error={error} />;
+export const AstViewer = ({ ast, parseError }: AstViewerProps) => {
+  if (parseError) {
+    return <ParseErrorMsg error={parseError} />;
   }
 
   if (!ast) {

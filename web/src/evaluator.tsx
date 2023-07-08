@@ -1,22 +1,21 @@
 /* eslint-disable no-case-declarations */
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import * as ast from "../../src/ast";
 import { ParseError } from "typescript-parsec";
-import {
-  astDebugger,
-  interpret,
-  type EvaluationEvents,
-} from "../../src/interpreter";
+import { type EvaluationEvents, Value } from "../../src/interpreter";
+import { unsafeEntries } from "./lib/unsafeEntries";
 
 export function Evaluator({
-  parserOutput,
+  ast: ast,
+  result,
+  error: error,
+  evaluationEvents: events,
 }: {
-  parserOutput: ast.Program | undefined;
+  ast: ast.Program | undefined;
+  result: Value;
+  error: ParseError | undefined;
+  evaluationEvents: EvaluationEvents;
 }) {
-  const [events, setEvents] = useState<EvaluationEvents>([]);
-  const [ast, setAst] = useState<ast.Program | null>(null);
-  const [error, setError] = useState<ParseError | null>(null);
-  const [result, setResult] = useState<unknown | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const onNext = () => {
@@ -26,28 +25,6 @@ export function Evaluator({
   const onPrev = () => {
     setCurrentIndex((index) => (index - 1 >= 0 ? index - 1 : index));
   };
-
-  useEffect(() => {
-    if (!parserOutput) return;
-    setError(null);
-    try {
-      const currentAst = assignIds(parserOutput, 0);
-      setAst(currentAst as any);
-
-      const evaluationEvents: EvaluationEvents = [];
-      const debug = astDebugger(evaluationEvents);
-
-      const res = interpret(currentAst as any, debug);
-      setResult(res);
-      setEvents(evaluationEvents.sort((a, b) => a.nid - b.nid));
-      setError(null);
-    } catch (e) {
-      if (typeof e === "object" && e !== null && "pos" in e) {
-        setError(e as unknown as ParseError);
-      }
-      console.error(e);
-    }
-  }, [parserOutput]);
 
   if (error) {
     return (
@@ -64,7 +41,7 @@ export function Evaluator({
   return (
     <div>
       <AstNode node={ast} currentNodeId={events[currentIndex]?.nid} />
-
+      <output>{JSON.stringify(result)}</output>
       <div>
         <h2 className="font-extrabold py-4">Evaluation steps</h2>
 
@@ -93,60 +70,15 @@ export function Evaluator({
   );
 }
 
-const assignIds = (
-  node: ast.Node | (ast.Node & { id: number }),
-  id: number
-): any => {
-  const newNode = { ...node, id };
-  switch (node.kind) {
-    case "BinaryExpression":
-      return {
-        ...newNode,
-        left: assignIds(node.left, id + 1),
-        right: assignIds(node.right, id + 2),
-      };
-    case "UnaryExpression":
-      return {
-        ...newNode,
-        operand: assignIds(node.operand, id + 1),
-      };
-    case "FunctionCall":
-      return {
-        ...newNode,
-        name: assignIds(node.name, id + 1),
-        arguments: node.arguments.map((arg, i) => assignIds(arg, id + i + 2)),
-      };
-    case "VariableDeclaration":
-      return {
-        ...newNode,
-        name: assignIds(node.name, id + 1),
-        initializer: assignIds(node.initializer, id + 2),
-      };
-    case "FunctionExpression":
-      return {
-        ...newNode,
-        parameters: node.parameters.map((param, i) =>
-          assignIds(param, id + i + 1)
-        ),
-        body: node.body.map((statement, i) => assignIds(statement, id + i + 2)),
-      };
-    case "Program":
-      return {
-        ...newNode,
-        statements: node.statements.map((statement, i) =>
-          assignIds(statement, id + i + 1)
-        ),
-      };
-    default:
-      return newNode;
-  }
-};
-
-const AstNode: React.FC<{ node: ast.Node; currentNodeId: number }> = ({
+const AstNode = ({
   node,
   currentNodeId,
+}: {
+  node: ast.Node & { id?: number };
+  currentNodeId: number;
 }) => {
-  const isCurrent = (node as any).id === currentNodeId;
+  // TODO: Ensure that the .id is really needed here.
+  const isCurrent = node.id === currentNodeId;
   const style = isCurrent ? { background: "yellow", color: "black" } : {};
 
   switch (node.kind) {
@@ -238,7 +170,7 @@ type EventInfoProps = {
   event: EvaluationEvents[number] | undefined;
 };
 
-const EventInfo: React.FC<EventInfoProps> = ({ event }) => {
+const EventInfo = ({ event }: EventInfoProps) => {
   if (!event) return null;
 
   return (
@@ -251,10 +183,10 @@ const EventInfo: React.FC<EventInfoProps> = ({ event }) => {
 };
 
 type BindingValueProps = {
-  value: ast.Node;
+  value: Value;
 };
 
-const BindingValue: React.FC<BindingValueProps> = ({ value }) => {
+const BindingValue = ({ value }: BindingValueProps) => {
   const [expanded, setExpanded] = useState(false);
   if (typeof value === "object" && value !== null && "kind" in value) {
     return (
@@ -274,10 +206,10 @@ type ScopeProps = {
   scope: EvaluationEvents[number]["scope"];
 };
 
-const ScopeComponent: React.FC<ScopeProps> = ({ scope }) => {
+const ScopeComponent = ({ scope }: ScopeProps) => {
   return (
     <div>
-      {Object.entries(scope.bindings).map(([binding, value]) => (
+      {unsafeEntries(scope.bindings).map(([binding, value]) => (
         <div key={binding}>
           <strong>{binding}:</strong> <BindingValue value={value} />
         </div>

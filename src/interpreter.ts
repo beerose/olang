@@ -63,7 +63,7 @@ export function astDebugger(events: EvaluationEvents) {
     node: ast.Node,
     scope: Scope,
     code: string,
-    value: unknown
+    value: Value
   ) {
     events.push({
       kind: node.kind,
@@ -80,7 +80,7 @@ export type EvaluationEvents = Array<{
   nid: number;
   scope: Scope;
   code: string;
-  value: unknown;
+  value: Value;
 }>;
 
 function printScope(scope: Scope) {
@@ -100,21 +100,28 @@ function printScope(scope: Scope) {
 
 interface Scope {
   parent: Scope | null;
-  bindings: Record<string, unknown>;
+  bindings: Record<string, Value>;
 }
 
-function getBinding(scope: Scope, name: string): unknown {
+function getBinding(scope: Scope, name: string): Value {
   if (name in scope.bindings) return scope.bindings[name];
   if (scope.parent) return getBinding(scope.parent, name);
   throw new Error(`Undefined variable: ${name}`);
 }
 
-type Result = any; // todo
+// TODO: This might be nice to refactor into a custom type.
+export type Value =
+  | undefined
+  | null
+  | number
+  | string
+  | boolean
+  | ast.FunctionExpression;
 
 export function interpret(
   programAst: ast.Program,
   debug?: ReturnType<typeof astDebugger>
-): Result {
+): Value {
   function createFunctionScope(node: ast.FunctionCall, scope: Readonly<Scope>) {
     const functionName = node.name.name;
     const functionDeclaration = getBinding(
@@ -140,7 +147,7 @@ export function interpret(
     return { functionDeclaration, fnScope };
   }
 
-  function evaluate(node: ast.Node, scope: Scope): Result {
+  function evaluate(node: ast.Node, scope: Scope): Value {
     switch (node.kind) {
       case "Identifier":
         const value = getBinding(scope, node.name);
@@ -153,6 +160,10 @@ export function interpret(
         return node.value;
       case "UnaryExpression":
         const operand = evaluate(node.operand, scope);
+        if (typeof operand !== "number") {
+          throw new Error("Operand must be a number");
+        }
+
         debug?.(node, scope, printAst(node), -operand);
 
         return -operand;
@@ -160,7 +171,12 @@ export function interpret(
         const left = evaluate(node.left, scope);
         const right = evaluate(node.right, scope);
 
-        let binaryResult: Result = null;
+        if (typeof left !== "number" || typeof right !== "number") {
+          // TODO: String concatenation
+          throw new Error("Operands must be numbers");
+        }
+
+        let binaryResult: Value = null;
         switch (node.operator) {
           case TokenKind.Plus:
             binaryResult = left + right;
@@ -184,7 +200,7 @@ export function interpret(
 
         return binaryResult;
       case "FunctionCall": {
-        let result: Result = null;
+        let result: Value = null;
         const { fnScope, functionDeclaration } = createFunctionScope(
           node,
           scope
@@ -212,7 +228,7 @@ export function interpret(
       }
 
       case "Program": {
-        let result: Result = null;
+        let result: Value = null;
         for (const statement of node.statements) {
           result = evaluate(statement, scope);
         }
