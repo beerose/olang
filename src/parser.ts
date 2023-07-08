@@ -1,10 +1,7 @@
 import {
-  Token,
   alt,
   alt_sc,
   apply,
-  expectEOF,
-  expectSingleResult,
   kleft,
   kmid,
   list_sc,
@@ -36,35 +33,45 @@ const FunctionCall = rule<TokenKind, ast.FunctionCall>();
 export const Program = rule<TokenKind, ast.Program>();
 
 NumericLiteral.setPattern(
-  apply(
-    tok(TokenKind.Number),
-    (value: Token<TokenKind.Number>): ast.NumericLiteral => {
-      return {
-        kind: "NumericLiteral",
-        value: parseFloat(value.text),
-      };
-    }
-  )
+  apply(tok(TokenKind.Number), (value, tokenRange): ast.NumericLiteral => {
+    return {
+      kind: "NumericLiteral",
+      value: parseFloat(value.text),
+      meta: {
+        from: tokenRange[0]?.pos.index,
+        to: tokenRange[0]?.pos.index! + tokenRange[0]?.text.length!,
+      },
+    };
+  })
 );
 
 Identifier.setPattern(
-  apply(
-    tok(TokenKind.Identifier),
-    (token): ast.Identifier => ({
+  apply(tok(TokenKind.Identifier), (token, tokenRange): ast.Identifier => {
+    return {
       kind: "Identifier",
       name: token.text,
-    })
-  )
+      meta: {
+        from: tokenRange[0]?.pos.index,
+        to: (tokenRange[0]?.pos.index || 0) + token.text.length,
+      },
+    };
+  })
 );
 
 UnaryExpression.setPattern(
   apply(
     seq(tok(TokenKind.Minus), Term),
-    ([operator, operand]): ast.UnaryExpression => ({
-      kind: "UnaryExpression",
-      operator: operator.kind,
-      operand: operand,
-    })
+    ([operator, operand], tokenRange): ast.UnaryExpression => {
+      return {
+        kind: "UnaryExpression",
+        operator: operator.kind,
+        operand: operand,
+        meta: {
+          from: tokenRange[0]?.pos.index,
+          to: operand.meta.to,
+        },
+      };
+    }
   )
 );
 
@@ -88,6 +95,10 @@ PowerExpression.setPattern(
         operator: TokenKind.AsteriskAsterisk,
         left,
         right,
+        meta: {
+          from: left.meta.from,
+          to: right.meta.to,
+        },
       })
     )
   )
@@ -109,6 +120,10 @@ MultiplicativeExpression.setPattern(
       operator: operator.kind,
       left,
       right,
+      meta: {
+        from: left.meta.from,
+        to: right.meta.to,
+      },
     })
   )
 );
@@ -125,6 +140,10 @@ AdditiveExpression.setPattern(
       operator: operator.kind,
       left,
       right,
+      meta: {
+        from: left.meta.from,
+        to: right.meta.to,
+      },
     })
   )
 );
@@ -138,6 +157,10 @@ AssignmentExpression.setPattern(
       operator: operator.kind,
       left,
       right,
+      meta: {
+        from: left.meta.from,
+        to: right.meta.to,
+      },
     })
   )
 );
@@ -150,11 +173,17 @@ VariableDeclaration.setPattern(
       tok(TokenKind.Equals),
       Expression
     ),
-    ([, identifier, , initializer]): ast.VariableDeclaration => ({
-      kind: "VariableDeclaration",
-      name: identifier,
-      initializer,
-    })
+    ([, identifier, , initializer], tokenRange): ast.VariableDeclaration => {
+      return {
+        kind: "VariableDeclaration",
+        name: identifier,
+        initializer,
+        meta: {
+          from: tokenRange[0]?.pos.index,
+          to: initializer.meta.to,
+        },
+      };
+    }
   )
 );
 
@@ -184,10 +213,14 @@ FunctionExpression.setPattern(
         )
       )
     ),
-    ([, parameters, , , body]): ast.FunctionExpression => ({
+    ([, parameters, , , body], tokenRange): ast.FunctionExpression => ({
       kind: "FunctionExpression",
       parameters: parameters?.filter((p): p is ast.Identifier => !!p) || [],
       body: Array.isArray(body) ? body[1] || [] : [body],
+      meta: {
+        from: tokenRange[0]?.pos.index,
+        to: Array.isArray(body) ? body[2]?.pos.index + 1 : body.meta.to,
+      },
     })
   )
 );
@@ -205,11 +238,21 @@ FunctionCall.setPattern(
       ),
       tok(TokenKind.RightParen)
     ),
-    ([identifier, _leftParen, parameters, _rightParen]): ast.FunctionCall => ({
-      kind: "FunctionCall",
-      name: identifier,
-      arguments: (parameters || []).filter((e): e is ast.Expression => !!e),
-    })
+    (
+      [identifier, _leftParen, parameters, _rightParen],
+      tokenRange
+    ): ast.FunctionCall => {
+      console.log(tokenRange);
+      return {
+        kind: "FunctionCall",
+        name: identifier,
+        arguments: (parameters || []).filter((e): e is ast.Expression => !!e),
+        meta: {
+          from: tokenRange[0]?.pos.index,
+          to: _rightParen.pos.index + 1,
+        },
+      };
+    }
   )
 );
 
@@ -228,10 +271,16 @@ Program.setPattern(
       ),
       opt_sc(tok(TokenKind.Newline))
     ),
-    ([statements = []]): ast.Program => ({
-      kind: "Program",
-      statements: statements.filter((e): e is ast.Expression => !!e),
-    })
+    ([statements = []], tokenRange): ast.Program => {
+      return {
+        kind: "Program",
+        statements: statements.filter((e): e is ast.Expression => !!e),
+        meta: {
+          from: tokenRange[0]?.pos.index,
+          to: statements[statements.length - 1]?.meta.to,
+        },
+      };
+    }
   )
 );
 

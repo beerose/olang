@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { SyntaxKind, Node } from "./ast";
+import { Node } from "./ast";
 import { TokenKind } from "./lexer";
 import { parse } from "./test/test-utils";
 import {
@@ -25,11 +25,13 @@ describe("parser", () => {
     expectParsed("1", {
       kind: "NumericLiteral",
       value: 1,
+      meta: expect.any(Object),
     });
 
     expectParsed("1000.0002", {
       kind: "NumericLiteral",
       value: 1000.0002,
+      meta: expect.any(Object),
     });
   });
 
@@ -56,8 +58,10 @@ describe("parser", () => {
           operator: TokenKind.Asterisk,
           left: NumericLiteral(1),
           right: NumericLiteral(2),
+          meta: expect.any(Object),
         },
         right: NumericLiteral(3),
+        meta: expect.any(Object),
       });
     });
 
