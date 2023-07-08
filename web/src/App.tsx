@@ -37,9 +37,16 @@ const tabs = [
 export const App = () => {
   const { pathname } = useRouter();
   const [code, setCode] = useState(DEFAULT_CODE);
+  const [highlightRange, setHighlightRange] = useState<
+    | {
+        from: number;
+        to: number;
+      }
+    | undefined
+  >({ from: 32, to: 40 });
 
   useLayoutEffect(() => {
-    if (pathname === "/") window.history.pushState({}, "", tabs[0].href);
+    if (pathname === "/") window.history.pushState({}, "", tabs[0]?.href);
   }, [pathname]);
 
   const tokens: Token<TokenKind>[] = [];
@@ -59,6 +66,8 @@ export const App = () => {
 
   const parseResult = parser.parse(code);
 
+  console.log(parseResult);
+
   if (parseResult.kind === "Error") parseError = parseResult;
   else ast = assignIds(parseResult, 0);
 
@@ -66,17 +75,23 @@ export const App = () => {
   let programResult: Value | undefined;
   try {
     programResult = ast && interpret(ast, astDebugger(evaluationEvents));
-  } catch (_err) {}
+  } catch (_err) {
+    /* empty */
+  }
   evaluationEvents.sort((a, b) => a.nid - b.nid);
 
   return (
     <main className="h-screen flex flex-row">
       <section className="resize-x overflow-auto w-1/2 border-r-2 mr-1">
-        <Editor value={code} onChange={setCode} />
+        <Editor
+          value={code}
+          onChange={setCode}
+          highlightRange={highlightRange}
+        />
       </section>
       <section className="w-1/2 flex-1">
         <header className="border-b border-gray-200">
-          <nav className="-mb-px flex space-x-8" aria-label="Tabs">
+          <nav className="flex gap-1" aria-label="Tabs">
             {tabs.map((tab) => (
               <a
                 key={tab.name}
@@ -85,7 +100,7 @@ export const App = () => {
                   tab.href === pathname
                     ? "border-gray-900 text-gray-900"
                     : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700",
-                  "whitespace-nowrap border-b-[3px] py-4 px-1 font-medium"
+                  "whitespace-nowrap border-b-[3px] px-4 py-3 font-medium"
                 )}
                 aria-current={tab.href === pathname ? "page" : undefined}
               >
@@ -96,7 +111,11 @@ export const App = () => {
         </header>
         <article>
           {pathname === "/lexer" && (
-            <Lexer tokens={tokens} tokenError={tokenError} />
+            <Lexer
+              tokens={tokens}
+              tokenError={tokenError}
+              setHighlightRange={setHighlightRange}
+            />
           )}
           {pathname === "/parser" && (
             <AstViewer ast={ast} parseError={parseError} />

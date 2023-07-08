@@ -1,34 +1,20 @@
 import { Token, TokenError } from "typescript-parsec";
 import { TokenKind } from "../../src/lexer";
 import { tokenColors } from "./colors";
+import { unsafeEntries } from "./lib/unsafeEntries";
 
-const tokenToDisplayName: { [key in TokenKind]: string } = {
-  [TokenKind.Number]: "Number",
-  [TokenKind.Equals]: "Equals",
-  [TokenKind.Plus]: "Plus",
-  [TokenKind.Minus]: "Minus",
-  [TokenKind.Asterisk]: "Asterisk",
-  [TokenKind.Percent]: "Percent",
-  [TokenKind.AsteriskAsterisk]: "AsteriskAsterisk",
-  [TokenKind.RightSlash]: "RightSlash",
-  [TokenKind.LeftParen]: "LeftParen",
-  [TokenKind.RightParen]: "RightParen",
-  [TokenKind.LeftBrace]: "LeftBrace",
-  [TokenKind.RightBrace]: "RightBrace",
-  [TokenKind.Space]: "Space",
-  [TokenKind.Identifier]: "Identifier",
-  [TokenKind.LetKeyword]: "LetKeyword",
-  [TokenKind.Comma]: "Comma",
-  [TokenKind.Newline]: "Newline",
-  [TokenKind.Arrow]: "Arrow",
-};
+const tokenToDisplayName = Object.fromEntries(
+  unsafeEntries(TokenKind).map(([key, value]) => [value, key])
+) as { [key in TokenKind]: string };
 
 export function Lexer({
   tokens,
   tokenError: error,
+  setHighlightRange,
 }: {
   tokens: Token<TokenKind>[] | undefined;
   tokenError: TokenError | undefined;
+  setHighlightRange: (range: { from: number; to: number }) => void;
 }) {
   return (
     <div className="overflow-scroll text-center flex flex-wrap">
@@ -41,32 +27,30 @@ export function Lexer({
           </span>
         </div>
       ) : (
-        <table>
-          <tbody>
-            <tr>
-              {tokens?.map((token, i) => (
-                <td
-                  key={i}
-                  className="border border-black p-3 font-extrabold"
-                  style={{ color: tokenColors[token.kind] }}
-                >
-                  {token.text}
-                </td>
-              ))}
-            </tr>
-            <tr>
-              {tokens?.map((token, i) => (
-                <td
-                  key={i}
-                  className="border border-black p-3 font-extrabold"
-                  style={{ color: tokenColors[token.kind] }}
-                >
-                  {tokenToDisplayName[token.kind]}
-                </td>
-              ))}
-            </tr>
-          </tbody>
-        </table>
+        <div className="flex flex-wrap py-2 gap-1">
+          {tokens?.map((token, i) => (
+            <button
+              key={i}
+              onClick={() => {
+                setHighlightRange({
+                  from: token.pos.index,
+                  to: token.pos.index + token.text.length,
+                });
+              }}
+              className="text-white px-1.5 py-1 text-xs rounded-md hover:shadow-md hover:opacity-90 transition-opacity"
+              style={{ background: tokenColors[token.kind] }}
+            >
+              {token.kind === TokenKind.Identifier ||
+              token.kind === TokenKind.Number ? (
+                <>
+                  {tokenToDisplayName[token.kind]}: {token.text}
+                </>
+              ) : (
+                tokenToDisplayName[token.kind]
+              )}
+            </button>
+          ))}
+        </div>
       )}
     </div>
   );

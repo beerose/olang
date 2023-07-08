@@ -1,5 +1,9 @@
-import CodeMirror, { ReactCodeMirrorProps } from "@uiw/react-codemirror";
+import CodeMirror, {
+  ReactCodeMirrorRef,
+  ReactCodeMirrorProps,
+} from "@uiw/react-codemirror";
 import { parser as javascriptParser } from "@lezer/javascript";
+import { StateField, StateEffect, Extension } from "@codemirror/state";
 
 import { githubLight } from "@uiw/codemirror-theme-github";
 import {
@@ -11,6 +15,33 @@ import {
   foldNodeProp,
   foldInside,
 } from "@codemirror/language";
+import { Decoration, DecorationSet, EditorView } from "@codemirror/view";
+import { useLayoutEffect, useRef } from "react";
+
+const addHighlight = StateEffect.define<{ from: number; to: number }>({
+  map: ({ from, to }, change) => ({
+    from: change.mapPos(from),
+    to: change.mapPos(to),
+  }),
+});
+const highlightMark = Decoration.mark({ class: "highlight-mark" });
+const highlightField = StateField.define<DecorationSet>({
+  create() {
+    return Decoration.none;
+  },
+  update(highlights, transaction) {
+    highlights = highlights.map(transaction.changes);
+    for (const e of transaction.effects) {
+      if (e.is(addHighlight)) {
+        highlights = Decoration.set(
+          highlightMark.range(e.value.from, e.value.to)
+        );
+      }
+    }
+    return highlights;
+  },
+  provide: (stateField) => EditorView.decorations.from(stateField),
+});
 
 const codemirrorOlangSupport = new LanguageSupport(
   LRLanguage.define({
@@ -53,19 +84,54 @@ const codemirrorOlangSupport = new LanguageSupport(
   })
 );
 
-const extensions: ReactCodeMirrorProps["extensions"] = [codemirrorOlangSupport];
+const extensions: ReactCodeMirrorProps["extensions"] = [
+  highlightField,
+  codemirrorOlangSupport,
+  EditorView.baseTheme({
+    ".highlight-mark": {
+      backgroundColor: "#ffff0077",
+      outline: "1px solid #00000022",
+      borderRadius: "2px",
+    },
+  }),
+];
 
 export function Editor(props: {
   value: string;
   onChange: (value: string) => void;
+  highlightRange: { from: number; to: number } | undefined;
 }) {
+  const editorRef = useRef<ReactCodeMirrorRef>(null);
+
+  useLayoutEffect(() => {
+    const view = editorRef.current?.view;
+
+    if (!view) return;
+
+    const from = props.highlightRange?.from;
+    const to = props.highlightRange?.to;
+
+    if (from === undefined || to === undefined) return;
+
+    const effects: StateEffect<{ from: number; to: number } | Extension>[] = [
+      addHighlight.of({ from, to }),
+    ];
+    if (!view.state.field(highlightField, false)) {
+      // todo: learn why does this have to be defined in two places
+      effects.push(StateEffect.appendConfig.of([highlightField]));
+    }
+
+    view.dispatch({ effects });
+  }, [props.highlightRange?.from, props.highlightRange?.to]);
+
   return (
     <CodeMirror
+      ref={editorRef}
       value={props.value}
       onChange={props.onChange}
       className="h-full [&>div]:h-full"
       theme={githubLight}
-      extensions={extensions}
+      extensions={extensions || []}
     />
   );
 }

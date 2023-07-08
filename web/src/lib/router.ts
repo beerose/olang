@@ -7,7 +7,7 @@ function createVerySimpleRouter() {
   const pushState = window.history.pushState;
   history.pushState = (data, _unused, uri) => {
     pushState.call(history, data, "", uri);
-    url = new URL(uri);
+    url = new URL(uri || window.location.href);
     listeners.forEach((listener) => listener());
   };
 
