@@ -1,6 +1,7 @@
 import * as ast from "../../src/ast";
-import { ParseError } from "typescript-parsec";
+import { ParseError, TokenError } from "typescript-parsec";
 import { expressionColors } from "./colors";
+import { Error } from "./error";
 
 const ASTNode = ({
   node,
@@ -93,29 +94,21 @@ const ASTNode = ({
   );
 };
 
-export const ParseErrorMsg = ({ error }: { error: ParseError }) => {
-  // todo: make this prettier
-  return (
-    <div>
-      {error.message} at line {error.pos?.rowBegin} column{" "}
-      {error.pos?.columnBegin}
-    </div>
-  );
-};
-
 interface AstViewerProps {
   ast: ast.Program | undefined;
   parseError: ParseError | undefined;
+  lexerError: TokenError | undefined;
   setHighlightRange: (range: { from: number; to: number }) => void;
 }
 
 export const AstViewer = ({
   ast,
   parseError,
+  lexerError,
   setHighlightRange,
 }: AstViewerProps) => {
-  if (parseError) {
-    return <ParseErrorMsg error={parseError} />;
+  if (parseError || lexerError) {
+    return <Error parseError={parseError} tokenError={lexerError} />;
   }
 
   if (!ast) {
@@ -123,6 +116,12 @@ export const AstViewer = ({
   }
 
   return (
-    <ASTNode node={ast} indentLevel={0} setHighlightRange={setHighlightRange} />
+    <div className="p-3">
+      <ASTNode
+        node={ast}
+        indentLevel={0}
+        setHighlightRange={setHighlightRange}
+      />
+    </div>
   );
 };

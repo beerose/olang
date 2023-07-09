@@ -124,8 +124,6 @@ export function Editor(props: {
     view.dispatch({ effects });
   }, [props.highlightRange, editorRef]);
 
-  console.log({ editorRef: editorRef?.current?.view });
-
   return (
     <CodeMirror
       ref={editorRef}

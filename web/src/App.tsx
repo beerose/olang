@@ -34,6 +34,62 @@ const tabs = [
   { name: "Interpreter", href: "/interpreter" },
 ];
 
+const runCode = (
+  code: string
+): {
+  tokens?: Token<TokenKind>[] | undefined;
+  tokenError?: TokenError | undefined;
+  parseError?: ParseError | undefined;
+  interpreterError?: Error | undefined;
+  ast?: ast.Program | undefined;
+  evaluationEvents?: EvaluationEvents | undefined;
+  result?: Value | undefined;
+} => {
+  const tokens: Token<TokenKind>[] = [];
+  let tokenError: TokenError | undefined;
+  try {
+    let token = lexer.parse(code);
+    while (token) {
+      tokens.push(token);
+      token = token.next;
+    }
+  } catch (err) {
+    tokenError = err as TokenError;
+  }
+  if (tokenError) return { tokenError };
+
+  let ast: ast.Program | undefined;
+  let parseError: ParseError | undefined;
+
+  try {
+    const parseResult = parser.parse(code);
+    if (parseResult.kind === "Error") parseError = parseResult;
+    else ast = parseResult;
+  } catch (err) {
+    parseError = err as ParseError;
+  }
+  if (parseError) return { parseError };
+
+  const evaluationEvents: EvaluationEvents = [];
+  let programResult: Value | undefined;
+  let interpreterError: Error | undefined;
+  try {
+    programResult = ast && interpret(ast, astDebugger(evaluationEvents));
+  } catch (err) {
+    interpreterError = err as Error;
+  }
+
+  return {
+    tokens,
+    tokenError,
+    parseError,
+    interpreterError,
+    ast,
+    evaluationEvents: evaluationEvents.reverse(),
+    result: programResult,
+  };
+};
+
 export const App = () => {
   const { pathname } = useRouter();
   const [code, setCode] = useState(DEFAULT_CODE);
@@ -56,34 +112,15 @@ export const App = () => {
     }
   }, [code.length, pathname]);
 
-  const tokens: Token<TokenKind>[] = [];
-  let tokenError: TokenError | undefined;
-  try {
-    let token = lexer.parse(code);
-    while (token) {
-      tokens.push(token);
-      token = token.next;
-    }
-  } catch (err) {
-    tokenError = err as TokenError;
-  }
-
-  let parseError: ParseError | undefined;
-  let ast: ast.Program | undefined;
-
-  const parseResult = parser.parse(code);
-
-  if (parseResult.kind === "Error") parseError = parseResult;
-  else ast = parseResult;
-
-  const evaluationEvents: EvaluationEvents = [];
-  let programResult: Value | undefined;
-  try {
-    programResult = ast && interpret(ast, astDebugger(evaluationEvents));
-  } catch (_err) {
-    /* empty */
-  }
-  evaluationEvents.reverse();
+  const {
+    tokens,
+    tokenError,
+    parseError,
+    interpreterError,
+    ast,
+    evaluationEvents,
+    result: programResult,
+  } = runCode(code);
 
   return (
     <main className="h-screen flex flex-row">
@@ -126,17 +163,15 @@ export const App = () => {
             <AstViewer
               ast={ast}
               parseError={parseError}
+              lexerError={tokenError}
               setHighlightRange={setHighlightRange}
             />
           )}
           {pathname === "/interpreter" && (
             <Evaluator
               ast={ast}
-              error={
-                // TODO: runtime execution error?
-                parseError
-              }
-              evaluationEvents={evaluationEvents}
+              errors={{ parseError, tokenError, interpreterError }}
+              evaluationEvents={evaluationEvents || []}
               result={programResult}
               setHighlightRange={setHighlightRange}
             />

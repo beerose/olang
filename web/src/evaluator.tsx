@@ -1,21 +1,26 @@
 /* eslint-disable no-case-declarations */
 import { useState } from "react";
 import * as ast from "../../src/ast";
-import { ParseError } from "typescript-parsec";
+import { ParseError, TokenError } from "typescript-parsec";
 import { type EvaluationEvents, Value } from "../../src/interpreter";
 import { unsafeEntries } from "./lib/unsafeEntries";
 import { expressionColors } from "./colors";
+import { Error } from "./error";
 
 export function Evaluator({
   ast: ast,
   result,
-  error: error,
+  errors,
   evaluationEvents: events,
   setHighlightRange,
 }: {
   ast: ast.Program | undefined;
   result: Value;
-  error: ParseError | undefined;
+  errors: {
+    tokenError?: TokenError | undefined;
+    parseError?: ParseError | undefined;
+    interpreterError?: Error | undefined;
+  };
   evaluationEvents: EvaluationEvents;
   setHighlightRange: (range: { from: number; to: number }) => void;
 }) {
@@ -54,16 +59,18 @@ export function Evaluator({
     }
   };
 
-  if (error) {
+  if (errors.tokenError || errors.parseError || errors.interpreterError) {
     return (
-      <div>
-        <pre>{error.message}</pre>
-      </div>
+      <Error
+        tokenError={errors.tokenError}
+        parseError={errors.parseError}
+        interpreterError={errors.interpreterError}
+      />
     );
   }
 
-  if (!ast || error) {
-    return <div>Evaluating...</div>;
+  if (!ast) {
+    return null;
   }
 
   return (

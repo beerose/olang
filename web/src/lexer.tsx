@@ -2,6 +2,7 @@ import { Token, TokenError } from "typescript-parsec";
 import { TokenKind } from "../../src/lexer";
 import { tokenColors } from "./colors";
 import { unsafeEntries } from "./lib/unsafeEntries";
+import { Error } from "./error";
 
 const tokenToDisplayName = Object.fromEntries(
   unsafeEntries(TokenKind).map(([key, value]) => [value, key])
@@ -19,13 +20,7 @@ export function Lexer({
   return (
     <div className="overflow-scroll text-center flex flex-wrap">
       {error ? (
-        <div className="text-left text-red-500 flex flex-col items-start p-3">
-          {error.errorMessage}
-          <span>
-            Row: {error.pos?.rowBegin}:{error.pos?.rowEnd} Col:{" "}
-            {error.pos?.columnBegin}:{error.pos?.columnEnd}
-          </span>
-        </div>
+        <Error tokenError={error} />
       ) : (
         <div className="flex flex-wrap py-2 gap-1">
           {tokens?.map((token, i) => (
