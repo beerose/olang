@@ -3,6 +3,9 @@ import { ParseError, TokenError } from "typescript-parsec";
 import { expressionColors } from "./colors";
 import { Error } from "./error";
 
+import { useState } from "react";
+import { Value } from "../../src/interpreter";
+
 const ASTNode = ({
   node,
   indentLevel,
@@ -13,83 +16,130 @@ const ASTNode = ({
   setHighlightRange: (range: { from: number; to: number }) => void;
 }) => {
   const color = expressionColors[node.kind];
-  return (
-    <div
-      style={{
-        marginLeft: `${indentLevel * 20}px`,
-        color,
-      }}
-    >
-      <table
-        className={`border border-black ${indentLevel > 0 ? "w-full" : ""}`}
-      >
-        <tbody>
-          <tr>
-            <td className="font-extrabold border-b border-black p-2 pb-1 pr-1">
+  const [expanded, setExpanded] = useState<string[]>(() => {
+    if (node.kind === "Program") {
+      return ["statements"];
+    }
+    return [];
+  });
+
+  const handleCollapedToggle = (key: string) => {
+    setExpanded((prev) => {
+      if (prev.includes(key)) {
+        return prev.filter((item) => item !== key);
+      }
+      return [...prev, key];
+    });
+  };
+
+  const handleHighlight = () => {
+    if (
+      typeof node.meta.from !== "number" ||
+      typeof node.meta.to !== "number"
+    ) {
+      return;
+    }
+    setHighlightRange({
+      from: node.meta.from,
+      to: node.meta.to,
+    });
+  };
+
+  const renderNode = (key: string, value: Value) => {
+    if (key === "kind") {
+      return (
+        <strong className="font-semibold p-1">
+          <button onClick={handleHighlight}>
+            {JSON.stringify(value).replace(/"/g, "")}
+          </button>
+        </strong>
+      );
+    }
+    if (Array.isArray(value)) {
+      return (
+        <>
+          <div className="flex items-center">
+            <div className="p-1">
+              <span className="text-gray-400">{key}:</span>
+            </div>
+            <div>
               <button
-                onClick={() => {
-                  if (
-                    typeof node.meta.from !== "number" ||
-                    typeof node.meta.to !== "number"
-                  ) {
-                    return;
-                  }
-                  setHighlightRange({
-                    from: node.meta.from,
-                    to: node.meta.to,
-                  });
-                }}
+                onClick={() => handleCollapedToggle(key)}
+                className="text-xs"
               >
-                {node.kind}
+                {expanded.includes(key) ? "▼" : "►"}
               </button>
-            </td>
-          </tr>
-          {Object.entries(node)
-            .filter(([key]) => key !== "kind")
-            .map(([key, value]) => {
-              if (key === "meta") {
-                return null;
-              }
-              if (Array.isArray(value)) {
-                return (
-                  <tr key={key}>
-                    <td className="p-2 pb-1 pr-1">
-                      {key}:
-                      {value.map((item, i) => (
-                        <div key={`${key}-${i}`}>
-                          <ASTNode
-                            node={item}
-                            indentLevel={indentLevel + 1}
-                            setHighlightRange={setHighlightRange}
-                          />
-                        </div>
-                      ))}
-                    </td>
-                  </tr>
-                );
-              } else if (typeof value === "object" && value !== null) {
-                return (
-                  <tr key={key}>
-                    <td className="p-2 pb-1 pr-1">
-                      {key}:
-                      <ASTNode
-                        node={value}
-                        indentLevel={indentLevel + 1}
-                        setHighlightRange={setHighlightRange}
-                      />
-                    </td>
-                  </tr>
-                );
-              } else {
-                return (
-                  <tr key={key}>
-                    {key}: {value}
-                  </tr>
-                );
-              }
-            })}
-        </tbody>
-      </table>
+            </div>
+          </div>
+          {expanded.includes(key) && (
+            <div className="mt-1">
+              {value.map((item, i) => (
+                <div key={`${key}-${i}`}>
+                  <ASTNode
+                    node={item}
+                    indentLevel={indentLevel + 1}
+                    setHighlightRange={setHighlightRange}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+        </>
+      );
+    }
+    if (typeof value === "object" && value !== null) {
+      return (
+        <>
+          <div className="flex items-center">
+            <div className="p-1">
+              <span className="text-gray-400">{key}:</span>
+            </div>
+            <div>
+              <button
+                onClick={() => handleCollapedToggle(key)}
+                className="text-xs"
+              >
+                {expanded.includes(key) ? "▼" : "►"}
+              </button>
+            </div>
+          </div>
+          {expanded.includes(key) && (
+            <div className="ml-1">
+              <ASTNode
+                node={value}
+                indentLevel={indentLevel + 1}
+                setHighlightRange={setHighlightRange}
+              />
+            </div>
+          )}
+        </>
+      );
+    }
+    return (
+      <div className="flex items-center">
+        <div className="px-1 py-2">
+          <span className="text-gray-400">{key}:</span>
+        </div>
+        <div>
+          <span>{value}</span>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div style={{ marginLeft: `${indentLevel * 10}px`, color }}>
+      <div
+        className={`${
+          node.kind === "Program" ? "" : "border-l border-gray-200 px-3"
+        }`}
+      >
+        {Object.entries(node)
+          .filter(([key]) => key !== "meta")
+          .map(([key, value]) => (
+            <div key={key}>{renderNode(key, value)}</div>
+          ))}
+      </div>
     </div>
   );
 };
