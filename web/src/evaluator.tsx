@@ -77,20 +77,24 @@ export function Evaluator({
     <div>
       <div className="border-b py-4 px-3">
         <span className="font-extrabold py-4">Result: </span>
-        <output>{JSON.stringify(result)}</output>
+        <output>
+          <pre>{JSON.stringify(result)}</pre>
+        </output>
       </div>
 
       <div className="px-3 py-4">
-        <h2 className="font-extrabold">Evaluation steps</h2>
-        <span className="isolate inline-flex rounded-md shadow-sm mt-3">
+        <h2 className="font-extrabold">
+          Evaluation steps: {currentIndex + 1} / {events.length}
+        </h2>
+        <span className="isolate inline-flex rounded-md text-xs shadow-sm my-3">
           <button
             type="button"
-            className="relative inline-flex items-center rounded-l-md bg-white px-2 text-gray-900 ring-1 ring-inset ring-gray-500 hover:bg-gray-100 focus:z-10"
+            className="relative inline-flex items-center rounded-l-md bg-white px-2 py-1 text-gray-900 ring-1 ring-inset ring-gray-500 hover:bg-gray-100 focus:z-10"
             onClick={onPrev}
             disabled={currentIndex === 0}
           >
             <span className="sr-only">Previous</span>
-            {"<"}
+            {"Prev"}
           </button>
           <button
             type="button"
@@ -98,7 +102,7 @@ export function Evaluator({
             onClick={onNext}
           >
             <span className="sr-only">Next</span>
-            {">"}
+            {"Next"}
           </button>
         </span>
 
@@ -116,9 +120,10 @@ const EventInfo = ({ event }: EventInfoProps) => {
   if (!event) return null;
 
   return (
-    <div className="py-3">
+    <div className="py-3 text-xs">
+      Current node:{" "}
       <span
-        className="px-2 py-1 rounded-md text-sm"
+        className="px-2 py-1 rounded-md"
         style={{
           backgroundColor: expressionColors[event.kind],
           color: "white",
@@ -126,7 +131,7 @@ const EventInfo = ({ event }: EventInfoProps) => {
       >
         {event.kind}
       </span>
-      <div className="py-3 font-semibold">Current scope:</div>
+      <div className="py-3">Node's scope:</div>
       <Scope scope={event.scope} />
     </div>
   );
@@ -140,12 +145,12 @@ const BindingValue = ({ value }: BindingValueProps) => {
   const [expanded, setExpanded] = useState(false);
   if (typeof value === "object" && value !== null && "kind" in value) {
     return (
-      <span className="relative">
+      <span className="relative text-xs">
         {expanded ? (
           <pre className="text-xs">{JSON.stringify(value, null, 2)}</pre>
         ) : (
           <span
-            className="px-2 py-1 rounded-md text-sm"
+            className="px-2 py-1 rounded-md text-xs"
             style={{
               backgroundColor: expressionColors[value.kind],
               color: "white",
@@ -181,7 +186,7 @@ const getAllBindings = (
 const Scope = ({ scope }: ScopeProps) => {
   const allBindings = getAllBindings(scope);
   return (
-    <table className="border border-black">
+    <table className="border border-black text-xs">
       <tbody>
         {unsafeEntries(allBindings).map(([name, value]) => (
           <tr key={name}>
