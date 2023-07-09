@@ -1,5 +1,5 @@
 import * as ast from "./ast";
-import { SyntaxKind } from "./ast";
+import { Node } from "./ast";
 import { TokenKind } from "./lexer";
 import { printAst } from "./printer";
 
@@ -67,7 +67,7 @@ export function astDebugger(events: EvaluationEvents) {
   ) {
     events.push({
       kind: node.kind,
-      nid: (node as any).id,
+      pos: node.meta,
       scope: scope,
       code,
       value,
@@ -77,25 +77,11 @@ export function astDebugger(events: EvaluationEvents) {
 
 export type EvaluationEvents = Array<{
   kind: ast.SyntaxKind;
-  nid: number;
+  pos: Node["meta"];
   scope: Scope;
   code: string;
   value: Value;
 }>;
-
-function printScope(scope: Scope) {
-  if (scope.parent) printScope(scope.parent!);
-  console.log("--- ^ --- ^ ---");
-  for (const key in scope.bindings) {
-    const value = scope.bindings[key];
-    console.log(
-      `[${key}]:`,
-      typeof value === "object" && "kind" in (value as ast.Node)
-        ? printAst(value as ast.Node)
-        : value
-    );
-  }
-}
 // #endregion
 
 interface Scope {

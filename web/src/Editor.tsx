@@ -122,16 +122,28 @@ export function Editor(props: {
     }
 
     view.dispatch({ effects });
-  }, [props.highlightRange?.from, props.highlightRange?.to]);
+  }, [props.highlightRange, editorRef]);
+
+  console.log({ editorRef: editorRef?.current?.view });
 
   return (
     <CodeMirror
       ref={editorRef}
+      onCreateEditor={(editor) => {
+        const from = props.highlightRange?.from;
+        const to = props.highlightRange?.to;
+        if (from !== undefined && to !== undefined) {
+          editor.dispatch({
+            effects: [addHighlight.of({ from, to })],
+          });
+        }
+      }}
       value={props.value}
       onChange={props.onChange}
       className="h-full [&>div]:h-full"
       theme={githubLight}
       extensions={extensions || []}
+      autoFocus
     />
   );
 }

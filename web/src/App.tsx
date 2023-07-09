@@ -43,11 +43,18 @@ export const App = () => {
         to: number;
       }
     | undefined
-  >({ from: 32, to: 40 });
+  >(undefined);
 
   useLayoutEffect(() => {
     if (pathname === "/") window.history.pushState({}, "", tabs[0]?.href);
-  }, [pathname]);
+
+    if (pathname === "/interpreter") {
+      setHighlightRange({
+        from: 0,
+        to: code.length,
+      });
+    }
+  }, [code.length, pathname]);
 
   const tokens: Token<TokenKind>[] = [];
   let tokenError: TokenError | undefined;
@@ -66,10 +73,8 @@ export const App = () => {
 
   const parseResult = parser.parse(code);
 
-  console.log(parseResult);
-
   if (parseResult.kind === "Error") parseError = parseResult;
-  else ast = assignIds(parseResult, 0);
+  else ast = parseResult;
 
   const evaluationEvents: EvaluationEvents = [];
   let programResult: Value | undefined;
@@ -78,7 +83,7 @@ export const App = () => {
   } catch (_err) {
     /* empty */
   }
-  evaluationEvents.sort((a, b) => a.nid - b.nid);
+  evaluationEvents.reverse();
 
   return (
     <main className="h-screen flex flex-row">
@@ -118,7 +123,11 @@ export const App = () => {
             />
           )}
           {pathname === "/parser" && (
-            <AstViewer ast={ast} parseError={parseError} />
+            <AstViewer
+              ast={ast}
+              parseError={parseError}
+              setHighlightRange={setHighlightRange}
+            />
           )}
           {pathname === "/interpreter" && (
             <Evaluator
@@ -129,56 +138,11 @@ export const App = () => {
               }
               evaluationEvents={evaluationEvents}
               result={programResult}
+              setHighlightRange={setHighlightRange}
             />
           )}
         </article>
       </section>
     </main>
   );
-};
-
-const assignIds = <TNode extends ast.Node>(node: TNode, id: number): TNode => {
-  const newNode = { ...node, id };
-  switch (node.kind) {
-    case "BinaryExpression":
-      return {
-        ...newNode,
-        left: assignIds(node.left, id + 1),
-        right: assignIds(node.right, id + 2),
-      };
-    case "UnaryExpression":
-      return {
-        ...newNode,
-        operand: assignIds(node.operand, id + 1),
-      };
-    case "FunctionCall":
-      return {
-        ...newNode,
-        name: assignIds(node.name, id + 1),
-        arguments: node.arguments.map((arg, i) => assignIds(arg, id + i + 2)),
-      };
-    case "VariableDeclaration":
-      return {
-        ...newNode,
-        name: assignIds(node.name, id + 1),
-        initializer: assignIds(node.initializer, id + 2),
-      };
-    case "FunctionExpression":
-      return {
-        ...newNode,
-        parameters: node.parameters.map((param, i) =>
-          assignIds(param, id + i + 1)
-        ),
-        body: node.body.map((statement, i) => assignIds(statement, id + i + 2)),
-      };
-    case "Program":
-      return {
-        ...newNode,
-        statements: node.statements.map((statement, i) =>
-          assignIds(statement, id + i + 1)
-        ),
-      };
-    default:
-      return newNode;
-  }
 };

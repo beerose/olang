@@ -4,26 +4,54 @@ import * as ast from "../../src/ast";
 import { ParseError } from "typescript-parsec";
 import { type EvaluationEvents, Value } from "../../src/interpreter";
 import { unsafeEntries } from "./lib/unsafeEntries";
+import { expressionColors } from "./colors";
 
 export function Evaluator({
   ast: ast,
   result,
   error: error,
   evaluationEvents: events,
+  setHighlightRange,
 }: {
   ast: ast.Program | undefined;
   result: Value;
   error: ParseError | undefined;
   evaluationEvents: EvaluationEvents;
+  setHighlightRange: (range: { from: number; to: number }) => void;
 }) {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const onNext = () => {
-    setCurrentIndex((index) => (index + 1 < events.length ? index + 1 : index));
+    const nextIndex =
+      currentIndex + 1 >= events.length ? currentIndex : currentIndex + 1;
+    setCurrentIndex(nextIndex);
+    const currentEvent = events[nextIndex];
+    if (
+      currentEvent &&
+      typeof currentEvent.pos.from !== "undefined" &&
+      typeof currentEvent.pos.to !== "undefined"
+    ) {
+      setHighlightRange({
+        from: currentEvent.pos.from,
+        to: currentEvent.pos.to,
+      });
+    }
   };
 
   const onPrev = () => {
-    setCurrentIndex((index) => (index - 1 >= 0 ? index - 1 : index));
+    const prevIndex = currentIndex - 1 < 0 ? currentIndex : currentIndex - 1;
+    setCurrentIndex(prevIndex);
+    const currentEvent = events[prevIndex];
+    if (
+      currentEvent &&
+      typeof currentEvent.pos.from !== "undefined" &&
+      typeof currentEvent.pos.to !== "undefined"
+    ) {
+      setHighlightRange({
+        from: currentEvent.pos.from,
+        to: currentEvent.pos.to,
+      });
+    }
   };
 
   if (error) {
@@ -40,131 +68,38 @@ export function Evaluator({
 
   return (
     <div>
-      <AstNode node={ast} currentNodeId={events[currentIndex]?.nid} />
-      <output>{JSON.stringify(result)}</output>
-      <div>
-        <h2 className="font-extrabold py-4">Evaluation steps</h2>
+      <div className="border-b py-4 px-3">
+        <span className="font-extrabold py-4">Result: </span>
+        <output>{JSON.stringify(result)}</output>
+      </div>
 
-        <EventInfo event={events[currentIndex]} />
-        <span className="isolate inline-flex rounded-md shadow-sm">
+      <div className="px-3 py-4">
+        <h2 className="font-extrabold">Evaluation steps</h2>
+        <span className="isolate inline-flex rounded-md shadow-sm mt-3">
           <button
             type="button"
-            className="relative inline-flex items-center rounded-l-md bg-white px-2 py-1  text-gray-900 ring-1 ring-inset ring-gray-500 hover:bg-gray-100 focus:z-10"
+            className="relative inline-flex items-center rounded-l-md bg-white px-2 text-gray-900 ring-1 ring-inset ring-gray-500 hover:bg-gray-100 focus:z-10"
             onClick={onPrev}
             disabled={currentIndex === 0}
           >
             <span className="sr-only">Previous</span>
-            Prev
+            {"<"}
           </button>
           <button
             type="button"
-            className="relative -ml-px inline-flex items-center rounded-r-md bg-white px-2 py-1 text-gray-900 ring-1 ring-inset ring-gray-500 hover:bg-gray-100 focus:z-10"
+            className="relative -ml-px inline-flex items-center rounded-r-md bg-white px-2 text-gray-900 ring-1 ring-inset ring-gray-500 hover:bg-gray-100 focus:z-10"
             onClick={onNext}
           >
             <span className="sr-only">Next</span>
-            Next
+            {">"}
           </button>
         </span>
+
+        <EventInfo event={events[currentIndex]} />
       </div>
     </div>
   );
 }
-
-const AstNode = ({
-  node,
-  currentNodeId,
-}: {
-  node: ast.Node & { id?: number };
-  currentNodeId: number;
-}) => {
-  // TODO: Ensure that the .id is really needed here.
-  const isCurrent = node.id === currentNodeId;
-  const style = isCurrent ? { background: "yellow", color: "black" } : {};
-
-  switch (node.kind) {
-    case "Program":
-      return (
-        <span style={style}>
-          {node.statements.map((childNode, i) => (
-            <AstNode key={i} node={childNode} currentNodeId={currentNodeId} />
-          ))}
-        </span>
-      );
-    case "BinaryExpression":
-      return (
-        <span style={style}>
-          {<AstNode node={node.left} currentNodeId={currentNodeId} />}
-          {node.operator}
-          {<AstNode node={node.right} currentNodeId={currentNodeId} />}
-        </span>
-      );
-    case "UnaryExpression":
-      return (
-        <span style={style}>
-          -{<AstNode node={node.operand} currentNodeId={currentNodeId} />}
-        </span>
-      );
-    case "NumericLiteral":
-      return <span style={style}>{node.value}</span>;
-    case "Identifier":
-      return <span style={style}>{node.name}</span>;
-    case "VariableDeclaration":
-      return (
-        <span style={style}>
-          let {node.name.name} ={" "}
-          {<AstNode node={node.initializer} currentNodeId={currentNodeId} />}
-        </span>
-      );
-    case "FunctionExpression":
-      let body;
-      if (node.body.length === 1) {
-        body = <AstNode node={node.body[0]} currentNodeId={currentNodeId} />;
-      } else {
-        body = (
-          <span>
-            {"{"}
-            <br />
-            {node.body.map((childNode, i) => (
-              <>
-                <AstNode
-                  key={i}
-                  node={childNode}
-                  currentNodeId={currentNodeId}
-                />
-                <br />
-              </>
-            ))}
-            {"}"}
-          </span>
-        );
-      }
-      return (
-        <span style={style}>
-          (
-          {node.parameters
-
-            .map((childNode, i) => (
-              <AstNode key={i} node={childNode} currentNodeId={currentNodeId} />
-            ))
-            .join(", ")}
-          ) {"=>"} {body}
-        </span>
-      );
-
-    case "FunctionCall":
-      return (
-        <div style={style}>
-          {node.name.name}(
-          {node.arguments.map((childNode, i) => (
-            <AstNode key={i} node={childNode} currentNodeId={currentNodeId} />
-          ))}
-          )
-        </div>
-      );
-    default:
-      return <div style={style}>Unknown node kind: {JSON.stringify(node)}</div>;
-  }
-};
 
 type EventInfoProps = {
   event: EvaluationEvents[number] | undefined;
@@ -174,10 +109,18 @@ const EventInfo = ({ event }: EventInfoProps) => {
   if (!event) return null;
 
   return (
-    <div>
-      <h3>Node Kind: {event.kind}</h3>
-      <h3>Scope:</h3>
-      <ScopeComponent scope={event.scope} />
+    <div className="py-3">
+      <span
+        className="px-2 py-1 rounded-md text-sm"
+        style={{
+          backgroundColor: expressionColors[event.kind],
+          color: "white",
+        }}
+      >
+        {event.kind}
+      </span>
+      <div className="py-3 font-semibold">Current scope:</div>
+      <Scope scope={event.scope} />
     </div>
   );
 };
@@ -190,9 +133,24 @@ const BindingValue = ({ value }: BindingValueProps) => {
   const [expanded, setExpanded] = useState(false);
   if (typeof value === "object" && value !== null && "kind" in value) {
     return (
-      <span>
-        {expanded ? JSON.stringify(value, null, 2) : value.kind}
-        <button onClick={() => setExpanded(!expanded)}>
+      <span className="relative">
+        {expanded ? (
+          <pre className="text-xs">{JSON.stringify(value, null, 2)}</pre>
+        ) : (
+          <span
+            className="px-2 py-1 rounded-md text-sm"
+            style={{
+              backgroundColor: expressionColors[value.kind],
+              color: "white",
+            }}
+          >
+            {value.kind}
+          </span>
+        )}
+        <button
+          className={`text-xs ml-3 ${expanded ? "absolute right-2 top-0" : ""}`}
+          onClick={() => setExpanded(!expanded)}
+        >
           {expanded ? "See less" : "See more"}
         </button>
       </span>
@@ -206,20 +164,27 @@ type ScopeProps = {
   scope: EvaluationEvents[number]["scope"];
 };
 
-const ScopeComponent = ({ scope }: ScopeProps) => {
+const getAllBindings = (
+  scope: EvaluationEvents[number]["scope"]
+): Record<string, Value> => {
+  if (!scope.parent) return scope.bindings;
+  return { ...scope.bindings, ...getAllBindings(scope.parent) };
+};
+
+const Scope = ({ scope }: ScopeProps) => {
+  const allBindings = getAllBindings(scope);
   return (
-    <div>
-      {unsafeEntries(scope.bindings).map(([binding, value]) => (
-        <div key={binding}>
-          <strong>{binding}:</strong> <BindingValue value={value} />
-        </div>
-      ))}
-      {scope.parent && (
-        <div>
-          <h4>Parent Scope:</h4>
-          <ScopeComponent scope={scope.parent} />
-        </div>
-      )}
-    </div>
+    <table className="border border-black">
+      <tbody>
+        {unsafeEntries(allBindings).map(([name, value]) => (
+          <tr key={name}>
+            <td className="border border-black p-2 font-semibold">{name}</td>
+            <td className="border border-black p-2">
+              <BindingValue value={value} />
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
   );
 };

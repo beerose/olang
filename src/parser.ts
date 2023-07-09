@@ -242,7 +242,6 @@ FunctionCall.setPattern(
       [identifier, _leftParen, parameters, _rightParen],
       tokenRange
     ): ast.FunctionCall => {
-      console.log(tokenRange);
       return {
         kind: "FunctionCall",
         name: identifier,
