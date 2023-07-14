@@ -112,6 +112,7 @@ export function Editor(props: {
     const to = props.highlightRange?.to;
 
     if (from === undefined || to === undefined) return;
+    if (from === to) return;
 
     const effects: StateEffect<{ from: number; to: number } | Extension>[] = [
       addHighlight.of({ from, to }),

@@ -38,7 +38,7 @@ NumericLiteral.setPattern(
       kind: "NumericLiteral",
       value: parseFloat(value.text),
       meta: {
-        from: tokenRange[0]?.pos.index,
+        from: tokenRange[0]?.pos.index || 0,
         to: tokenRange[0]?.pos.index! + tokenRange[0]?.text.length!,
       },
     };
@@ -51,7 +51,7 @@ Identifier.setPattern(
       kind: "Identifier",
       name: token.text,
       meta: {
-        from: tokenRange[0]?.pos.index,
+        from: tokenRange[0]?.pos.index || 0,
         to: (tokenRange[0]?.pos.index || 0) + token.text.length,
       },
     };
@@ -67,7 +67,7 @@ UnaryExpression.setPattern(
         operator: operator.kind,
         operand: operand,
         meta: {
-          from: tokenRange[0]?.pos.index,
+          from: tokenRange[0]?.pos.index || 0,
           to: operand.meta.to,
         },
       };
@@ -179,7 +179,7 @@ VariableDeclaration.setPattern(
         name: identifier,
         initializer,
         meta: {
-          from: tokenRange[0]?.pos.index,
+          from: tokenRange[0]?.pos.index || 0,
           to: initializer.meta.to,
         },
       };
@@ -218,7 +218,7 @@ FunctionExpression.setPattern(
       parameters: parameters?.filter((p): p is ast.Identifier => !!p) || [],
       body: Array.isArray(body) ? body[1] || [] : [body],
       meta: {
-        from: tokenRange[0]?.pos.index,
+        from: tokenRange[0]?.pos.index || 0,
         to: Array.isArray(body) ? body[2]?.pos.index + 1 : body.meta.to,
       },
     })
@@ -247,7 +247,7 @@ FunctionCall.setPattern(
         name: identifier,
         arguments: (parameters || []).filter((e): e is ast.Expression => !!e),
         meta: {
-          from: tokenRange[0]?.pos.index,
+          from: tokenRange[0]?.pos.index || 0,
           to: _rightParen.pos.index + 1,
         },
       };
@@ -275,8 +275,8 @@ Program.setPattern(
         kind: "Program",
         statements: statements.filter((e): e is ast.Expression => !!e),
         meta: {
-          from: tokenRange[0]?.pos.index,
-          to: statements[statements.length - 1]?.meta.to,
+          from: tokenRange[0]?.pos.index || 0,
+          to: statements[statements.length - 1]?.meta.to || 0,
         },
       };
     }

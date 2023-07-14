@@ -19,6 +19,7 @@ export enum TokenKind {
   Comma = ",",
   Newline = "\n",
   Arrow = "=>",
+  QuestionMark = "?",
 }
 
 export type OperatorTokenKind =
@@ -28,7 +29,8 @@ export type OperatorTokenKind =
   | TokenKind.Asterisk
   | TokenKind.RightSlash
   | TokenKind.Asterisk
-  | TokenKind.AsteriskAsterisk;
+  | TokenKind.AsteriskAsterisk
+  | TokenKind.Percent;
 
 export const lexer = buildLexer([
   [true, /^\n/g, TokenKind.Newline],
@@ -36,6 +38,7 @@ export const lexer = buildLexer([
   [true, /^\=/g, TokenKind.Equals],
   [true, /^\+/g, TokenKind.Plus],
   [true, /^\-/g, TokenKind.Minus],
+  [true, /^\%/g, TokenKind.Percent],
   [true, /^\*\*/g, TokenKind.AsteriskAsterisk],
   [true, /^\*/g, TokenKind.Asterisk],
   [true, /^\//g, TokenKind.RightSlash],

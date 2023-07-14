@@ -32,7 +32,7 @@ export function Lexer({
                   to: token.pos.index + token.text.length,
                 });
               }}
-              className="text-white px-1.5 py-1 text-xs rounded-md hover:shadow-md hover:opacity-90 transition-opacity"
+              className="text-white bg-orange-400 px-1.5 py-1 text-xs rounded-md hover:shadow-md hover:opacity-90 transition-opacity"
               style={{ background: tokenColors[token.kind] }}
             >
               {token.kind === TokenKind.Identifier ||

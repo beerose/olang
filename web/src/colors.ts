@@ -7,7 +7,6 @@ export const tokenColors: { [key in TokenKind]: string } = {
   [TokenKind.Plus]: "#422c4f",
   [TokenKind.Minus]: "#422c4f",
   [TokenKind.Asterisk]: "#422c4f",
-  [TokenKind.Percent]: "#422c4f",
   [TokenKind.AsteriskAsterisk]: "#422c4f",
   [TokenKind.RightSlash]: "#422c4f",
   [TokenKind.LeftParen]: "#6a737d",
@@ -19,7 +18,8 @@ export const tokenColors: { [key in TokenKind]: string } = {
   [TokenKind.LetKeyword]: "#d73a49",
   [TokenKind.Comma]: "rgb(78, 155, 86)",
   [TokenKind.Arrow]: "#6abba3",
-  [TokenKind.Newline]: "gray",
+  [TokenKind.Percent]: "#422c4f",
+  [TokenKind.Newline]: "lightgray",
 };
 
 export const expressionColors: { [key in SyntaxKind]: string } = {

@@ -13,8 +13,8 @@ export type SyntaxKind =
 export interface BaseNode {
   kind: SyntaxKind;
   meta: {
-    from: number | undefined;
-    to: number | undefined;
+    from: number;
+    to: number;
   };
 }
 

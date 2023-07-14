@@ -1,4 +1,4 @@
-import { useLayoutEffect, useState } from "react";
+import { useLayoutEffect, useMemo, useState } from "react";
 import { ParseError, Token, TokenError } from "typescript-parsec";
 
 import * as ast from "../../src/ast";
@@ -120,7 +120,7 @@ export const App = () => {
     ast,
     evaluationEvents,
     result: programResult,
-  } = runCode(code);
+  } = useMemo(() => runCode(code), [code]);
 
   return (
     <main className="h-screen flex flex-row">
