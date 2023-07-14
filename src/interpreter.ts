@@ -3,60 +3,6 @@ import { Node } from "./ast";
 import { TokenKind } from "./lexer";
 import { printAst } from "./printer";
 
-export function visit(
-  node: ast.Node,
-  visitor: {
-    [Key in ast.SyntaxKind]?: {
-      enter?(node: Extract<ast.Node, { kind: Key }>): void;
-      exit?(node: Extract<ast.Node, { kind: Key }>): void;
-    };
-  }
-) {
-  const stack = [node];
-
-  while (stack.length) {
-    const current = stack.pop()!;
-    const { enter, exit } = visitor[current.kind] || {};
-    if (enter) {
-      (enter as (node: ast.Node) => void)(current);
-    }
-
-    switch (current.kind) {
-      case "Program":
-        stack.push(...current.statements.reverse());
-        break;
-      case "BinaryExpression":
-        stack.push(current.left, current.right);
-        break;
-      case "UnaryExpression":
-        stack.push(current.operand);
-        break;
-      case "FunctionCall":
-        stack.push(...current.arguments);
-        break;
-      case "VariableDeclaration":
-        stack.push(current.name);
-        stack.push(current.initializer);
-        break;
-      case "FunctionExpression":
-        const params = [...current.parameters].reverse();
-        const body = [...current.body].reverse();
-        stack.push(...params, ...body);
-        break;
-      case "Identifier":
-      case "NumericLiteral":
-        break;
-      default:
-        const _exhaustiveCheck: never = current;
-        throw new Error(`Unhandled node kind: ${(current as ast.Node).kind}`);
-    }
-
-    if (exit) {
-      (exit as (node: ast.Node) => void)(current);
-    }
-  }
-}
-
 // #region debugger
 export function astDebugger(events: EvaluationEvents) {
   return function debug(
