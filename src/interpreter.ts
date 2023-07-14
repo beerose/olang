@@ -125,6 +125,9 @@ export function interpret(
           case TokenKind.AsteriskAsterisk:
             binaryResult = left ** right;
             break;
+          case TokenKind.Percent:
+            binaryResult = left % right;
+            break;
           default:
             throw new Error(`Unhandled binary operator: ${node.operator}`);
         }

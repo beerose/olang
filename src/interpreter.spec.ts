@@ -39,6 +39,12 @@ describe(interpret, () => {
     expectEvaluated("-1", -1);
 
     expectEvaluated("-1 + 2", 1);
+
+    expectEvaluated("7 % 2", 1);
+
+    expectEvaluated("7 % 3", 1);
+
+    expectEvaluated("7 % 4", 3);
   });
 
   it("evaluates functions", () => {
