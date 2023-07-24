@@ -35,8 +35,9 @@ export function Error(props: {
 
   if (props.interpreterError) {
     return (
-      <div>
-        <pre>{props.interpreterError.message}</pre>
+      <div className="text-left text-red-500 flex flex-col items-start p-3">
+        <div className="font-semibold">Error:</div>
+        {props.interpreterError.message}
       </div>
     );
   }
