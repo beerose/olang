@@ -19,7 +19,6 @@ export enum TokenKind {
   Comma = ",",
   Newline = "\n",
   Arrow = "=>",
-  QuestionMark = "?",
 }
 
 export type OperatorTokenKind =
