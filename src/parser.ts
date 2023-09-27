@@ -29,6 +29,7 @@ const AssignmentExpression = rule<TokenKind, ast.Expression>();
 const VariableDeclaration = rule<TokenKind, ast.VariableDeclaration>();
 const FunctionExpression = rule<TokenKind, ast.FunctionExpression>();
 const FunctionCall = rule<TokenKind, ast.FunctionCall>();
+const PrintExpression = rule<TokenKind, ast.PrintExpression>();
 
 export const Program = rule<TokenKind, ast.Program>();
 
@@ -255,8 +256,29 @@ FunctionCall.setPattern(
   )
 );
 
+PrintExpression.setPattern(
+  apply(
+    seq(Term, tok(TokenKind.QuestionMark)),
+    ([expression], tokenRange): ast.PrintExpression => {
+      return {
+        kind: "PrintExpression",
+        expression,
+        meta: {
+          from: tokenRange[0]?.pos.index || 0,
+          to: expression.meta.to + 1,
+        },
+      };
+    }
+  )
+);
+
 Expression.setPattern(
-  alt_sc(FunctionExpression, VariableDeclaration, AssignmentExpression)
+  alt_sc(
+    PrintExpression,
+    FunctionExpression,
+    VariableDeclaration,
+    AssignmentExpression
+  )
 );
 
 Program.setPattern(

@@ -151,6 +151,9 @@ export function interpret(
 
       case "VariableDeclaration": {
         const value = evaluate(node.initializer, scope);
+        if (scope.bindings[node.name.name]) {
+          throw new Error(`Variable already declared: ${node.name.name}`);
+        }
         scope.bindings[node.name.name] = value;
 
         debug?.(node, scope, printAst(node), value);
@@ -160,6 +163,15 @@ export function interpret(
       case "FunctionExpression": {
         debug?.(node, scope, printAst(node), node);
         return node;
+      }
+
+      case "PrintExpression": {
+        debug?.(node, scope, printAst(node), evaluate(node.expression, scope));
+        const printExpressionResult = evaluate(node.expression, scope);
+
+        console.log(`${printAst(node)} -> ${printExpressionResult}`);
+
+        return printExpressionResult;
       }
 
       case "Program": {
