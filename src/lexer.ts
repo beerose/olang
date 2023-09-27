@@ -19,7 +19,6 @@ export enum TokenKind {
   Comma = ",",
   Newline = "\n",
   Arrow = "=>",
-  QuestionMark = "?",
 }
 
 export type OperatorTokenKind =
@@ -45,7 +44,7 @@ export const lexer = buildLexer([
   [true, /^\//g, TokenKind.RightSlash],
   [true, /^\(/g, TokenKind.LeftParen],
   [true, /^\)/g, TokenKind.RightParen],
-  [false, /^\s+/g, TokenKind.Space],
+  [false, /^\s+/g, TokenKind.Space], // ignore whitespace
   [true, /^\,/g, TokenKind.Comma],
   [true, /^\{/g, TokenKind.LeftBrace],
   [true, /^\}/g, TokenKind.RightBrace],
