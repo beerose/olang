@@ -8,6 +8,7 @@ export type SyntaxKind =
   | "VariableDeclaration"
   | "FunctionExpression"
   | "FunctionCall"
+  | "PrintExpression"
   | "Program";
 
 export interface BaseNode {
@@ -67,6 +68,11 @@ export interface FunctionCall extends BaseNode {
   arguments: Expression[];
 }
 
+export interface PrintExpression extends BaseNode {
+  kind: "PrintExpression";
+  expression: Expression;
+}
+
 export interface Program extends BaseNode {
   kind: "Program";
   statements: Expression[];
@@ -81,4 +87,5 @@ export type Expression =
   | Identifier
   | FunctionExpression
   | FunctionCall
-  | VariableDeclaration;
+  | VariableDeclaration
+  | PrintExpression;

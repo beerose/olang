@@ -29,7 +29,8 @@ export type OperatorTokenKind =
   | TokenKind.RightSlash
   | TokenKind.Asterisk
   | TokenKind.AsteriskAsterisk
-  | TokenKind.Percent;
+  | TokenKind.Percent
+  | TokenKind.QuestionMark;
 
 export const lexer = buildLexer([
   [true, /^\n/g, TokenKind.Newline],
@@ -50,4 +51,5 @@ export const lexer = buildLexer([
   [true, /^=>/g, TokenKind.Arrow],
   [true, /^let/g, TokenKind.LetKeyword],
   [true, /^[a-zA-Z_][a-zA-Z0-9_]*/g, TokenKind.Identifier],
+  [true, /^\?/g, TokenKind.QuestionMark],
 ]);

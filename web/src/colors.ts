@@ -20,6 +20,7 @@ export const tokenColors: { [key in TokenKind]: string } = {
   [TokenKind.Arrow]: "#6abba3",
   [TokenKind.Percent]: "#422c4f",
   [TokenKind.Newline]: "lightgray",
+  [TokenKind.QuestionMark]: "#422c4f",
 };
 
 export const expressionColors: { [key in SyntaxKind]: string } = {
@@ -31,4 +32,5 @@ export const expressionColors: { [key in SyntaxKind]: string } = {
   FunctionExpression: "#6446b9",
   FunctionCall: "rgb(58, 151, 10)",
   Program: "#c751c4",
+  PrintExpression: "#422c4f",
 };
