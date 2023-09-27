@@ -1,4 +1,4 @@
-import { TokenKind } from "./lexer";
+import { TokenKind } from "./lexer"
 
 export type SyntaxKind =
   | "BinaryExpression"
@@ -9,24 +9,25 @@ export type SyntaxKind =
   | "FunctionExpression"
   | "FunctionCall"
   | "PrintExpression"
-  | "Program";
+  | "ArrayExpression"
+  | "Program"
 
 export interface BaseNode {
-  kind: SyntaxKind;
+  kind: SyntaxKind
   meta: {
-    from: number;
-    to: number;
-  };
+    from: number
+    to: number
+  }
 }
 
 export interface NumericLiteral extends BaseNode {
-  kind: "NumericLiteral";
-  value: number;
+  kind: "NumericLiteral"
+  value: number
 }
 
 export interface BinaryExpression extends BaseNode {
-  kind: "BinaryExpression";
-  left: Expression;
+  kind: "BinaryExpression"
+  left: Expression
   operator:
     | TokenKind.Equals
     | TokenKind.Plus
@@ -35,50 +36,55 @@ export interface BinaryExpression extends BaseNode {
     | TokenKind.RightSlash
     | TokenKind.Asterisk
     | TokenKind.Percent
-    | TokenKind.AsteriskAsterisk;
-  right: Expression;
+    | TokenKind.AsteriskAsterisk
+  right: Expression
 }
 
 export interface UnaryExpression extends BaseNode {
-  kind: "UnaryExpression";
-  operator: TokenKind.Minus;
-  operand: Expression;
+  kind: "UnaryExpression"
+  operator: TokenKind.Minus
+  operand: Expression
 }
 
 export interface Identifier extends BaseNode {
-  kind: "Identifier";
-  name: string;
+  kind: "Identifier"
+  name: string
 }
 
 export interface VariableDeclaration extends BaseNode {
-  kind: "VariableDeclaration";
-  name: Identifier;
-  initializer: Expression;
+  kind: "VariableDeclaration"
+  name: Identifier
+  initializer: Expression
 }
 
 export interface FunctionExpression extends BaseNode {
-  kind: "FunctionExpression";
-  parameters: Identifier[];
-  body: Expression[];
+  kind: "FunctionExpression"
+  parameters: Identifier[]
+  body: Expression[]
 }
 
 export interface FunctionCall extends BaseNode {
-  kind: "FunctionCall";
-  name: Identifier;
-  arguments: Expression[];
+  kind: "FunctionCall"
+  name: Identifier
+  arguments: Expression[]
 }
 
 export interface PrintExpression extends BaseNode {
-  kind: "PrintExpression";
-  expression: Expression;
+  kind: "PrintExpression"
+  expression: Expression
+}
+
+export interface ArrayExpression extends BaseNode {
+  kind: "ArrayExpression"
+  elements: Expression[]
 }
 
 export interface Program extends BaseNode {
-  kind: "Program";
-  statements: Expression[];
+  kind: "Program"
+  statements: Expression[]
 }
 
-export type Node = Program | Expression;
+export type Node = Program | Expression
 
 export type Expression =
   | NumericLiteral
@@ -88,4 +94,5 @@ export type Expression =
   | FunctionExpression
   | FunctionCall
   | VariableDeclaration
-  | PrintExpression;
+  | PrintExpression
+  | ArrayExpression

@@ -13,6 +13,8 @@ export enum TokenKind {
   RightParen = ")",
   LeftBrace = "{",
   RightBrace = "}",
+  LeftSquareBracket = "[",
+  RightSquareBracket = "]",
   Space = " ",
   Identifier = "i",
   LetKeyword = "let",
@@ -52,4 +54,6 @@ export const lexer = buildLexer([
   [true, /^let/g, TokenKind.LetKeyword],
   [true, /^[a-zA-Z_][a-zA-Z0-9_]*/g, TokenKind.Identifier],
   [true, /^\?/g, TokenKind.QuestionMark],
+  [true, /^\[/g, TokenKind.LeftSquareBracket],
+  [true, /^\]/g, TokenKind.RightSquareBracket],
 ])

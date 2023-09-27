@@ -11,27 +11,28 @@ import {
   seq,
   str,
   tok,
-} from "typescript-parsec";
-import { TokenKind, lexer } from "./lexer";
-import type * as ast from "./ast";
+} from "typescript-parsec"
+import { TokenKind, lexer } from "./lexer"
+import type * as ast from "./ast"
 
-export const Expression = rule<TokenKind, ast.Expression>();
+export const Expression = rule<TokenKind, ast.Expression>()
 
-const NumericLiteral = rule<TokenKind, ast.NumericLiteral>();
-const Identifier = rule<TokenKind, ast.Identifier>();
-const Term = rule<TokenKind, ast.Expression>();
+const NumericLiteral = rule<TokenKind, ast.NumericLiteral>()
+const Identifier = rule<TokenKind, ast.Identifier>()
+const Term = rule<TokenKind, ast.Expression>()
 
-const UnaryExpression = rule<TokenKind, ast.UnaryExpression>();
-const MultiplicativeExpression = rule<TokenKind, ast.Expression>();
-const PowerExpression = rule<TokenKind, ast.Expression>();
-const AdditiveExpression = rule<TokenKind, ast.Expression>();
-const AssignmentExpression = rule<TokenKind, ast.Expression>();
-const VariableDeclaration = rule<TokenKind, ast.VariableDeclaration>();
-const FunctionExpression = rule<TokenKind, ast.FunctionExpression>();
-const FunctionCall = rule<TokenKind, ast.FunctionCall>();
-const PrintExpression = rule<TokenKind, ast.PrintExpression>();
+const UnaryExpression = rule<TokenKind, ast.UnaryExpression>()
+const MultiplicativeExpression = rule<TokenKind, ast.Expression>()
+const PowerExpression = rule<TokenKind, ast.Expression>()
+const AdditiveExpression = rule<TokenKind, ast.Expression>()
+const AssignmentExpression = rule<TokenKind, ast.Expression>()
+const VariableDeclaration = rule<TokenKind, ast.VariableDeclaration>()
+const FunctionExpression = rule<TokenKind, ast.FunctionExpression>()
+const FunctionCall = rule<TokenKind, ast.FunctionCall>()
+const PrintExpression = rule<TokenKind, ast.PrintExpression>()
+const ArrayExpression = rule<TokenKind, ast.ArrayExpression>()
 
-export const Program = rule<TokenKind, ast.Program>();
+export const Program = rule<TokenKind, ast.Program>()
 
 NumericLiteral.setPattern(
   apply(tok(TokenKind.Number), (value, tokenRange): ast.NumericLiteral => {
@@ -42,9 +43,9 @@ NumericLiteral.setPattern(
         from: tokenRange[0]?.pos.index || 0,
         to: tokenRange[0]?.pos.index! + tokenRange[0]?.text.length!,
       },
-    };
-  })
-);
+    }
+  }),
+)
 
 Identifier.setPattern(
   apply(tok(TokenKind.Identifier), (token, tokenRange): ast.Identifier => {
@@ -55,9 +56,9 @@ Identifier.setPattern(
         from: tokenRange[0]?.pos.index || 0,
         to: (tokenRange[0]?.pos.index || 0) + token.text.length,
       },
-    };
-  })
-);
+    }
+  }),
+)
 
 UnaryExpression.setPattern(
   apply(
@@ -71,10 +72,10 @@ UnaryExpression.setPattern(
           from: tokenRange[0]?.pos.index || 0,
           to: operand.meta.to,
         },
-      };
-    }
-  )
-);
+      }
+    },
+  ),
+)
 
 Term.setPattern(
   alt_sc(
@@ -82,9 +83,9 @@ Term.setPattern(
     NumericLiteral,
     Identifier,
     UnaryExpression,
-    kmid(str("("), Expression, str(")"))
-  )
-);
+    kmid(str("("), Expression, str(")")),
+  ),
+)
 
 PowerExpression.setPattern(
   alt(
@@ -100,10 +101,10 @@ PowerExpression.setPattern(
           from: left.meta.from,
           to: right.meta.to,
         },
-      })
-    )
-  )
-);
+      }),
+    ),
+  ),
+)
 
 MultiplicativeExpression.setPattern(
   lrec_sc(
@@ -112,9 +113,9 @@ MultiplicativeExpression.setPattern(
       alt(
         tok(TokenKind.Asterisk),
         tok(TokenKind.RightSlash),
-        tok(TokenKind.Percent)
+        tok(TokenKind.Percent),
       ),
-      PowerExpression
+      PowerExpression,
     ),
     (left, [operator, right]): ast.BinaryExpression => ({
       kind: "BinaryExpression",
@@ -125,16 +126,16 @@ MultiplicativeExpression.setPattern(
         from: left.meta.from,
         to: right.meta.to,
       },
-    })
-  )
-);
+    }),
+  ),
+)
 
 AdditiveExpression.setPattern(
   lrec_sc(
     MultiplicativeExpression,
     seq(
       alt(tok(TokenKind.Plus), tok(TokenKind.Minus)),
-      MultiplicativeExpression
+      MultiplicativeExpression,
     ),
     (left, [operator, right]): ast.BinaryExpression => ({
       kind: "BinaryExpression",
@@ -145,9 +146,9 @@ AdditiveExpression.setPattern(
         from: left.meta.from,
         to: right.meta.to,
       },
-    })
-  )
-);
+    }),
+  ),
+)
 
 AssignmentExpression.setPattern(
   lrec_sc(
@@ -162,9 +163,9 @@ AssignmentExpression.setPattern(
         from: left.meta.from,
         to: right.meta.to,
       },
-    })
-  )
-);
+    }),
+  ),
+)
 
 VariableDeclaration.setPattern(
   apply(
@@ -172,7 +173,7 @@ VariableDeclaration.setPattern(
       tok(TokenKind.LetKeyword),
       Identifier,
       tok(TokenKind.Equals),
-      Expression
+      Expression,
     ),
     ([, identifier, , initializer], tokenRange): ast.VariableDeclaration => {
       return {
@@ -183,10 +184,10 @@ VariableDeclaration.setPattern(
           from: tokenRange[0]?.pos.index || 0,
           to: initializer.meta.to,
         },
-      };
-    }
-  )
-);
+      }
+    },
+  ),
+)
 
 FunctionExpression.setPattern(
   apply(
@@ -195,8 +196,8 @@ FunctionExpression.setPattern(
       opt_sc(
         kleft(
           list_sc(opt_sc(Identifier), tok(TokenKind.Comma)),
-          opt_sc(tok(TokenKind.Comma))
-        )
+          opt_sc(tok(TokenKind.Comma)),
+        ),
       ),
       tok(TokenKind.RightParen),
       tok(TokenKind.Arrow),
@@ -207,12 +208,12 @@ FunctionExpression.setPattern(
           opt_sc(
             kleft(
               list_sc(Expression, opt_sc(tok(TokenKind.Newline))),
-              opt_sc(tok(TokenKind.Newline))
-            )
+              opt_sc(tok(TokenKind.Newline)),
+            ),
           ),
-          tok(TokenKind.RightBrace)
-        )
-      )
+          tok(TokenKind.RightBrace),
+        ),
+      ),
     ),
     ([, parameters, , , body], tokenRange): ast.FunctionExpression => ({
       kind: "FunctionExpression",
@@ -222,9 +223,9 @@ FunctionExpression.setPattern(
         from: tokenRange[0]?.pos.index || 0,
         to: Array.isArray(body) ? body[2]?.pos.index + 1 : body.meta.to,
       },
-    })
-  )
-);
+    }),
+  ),
+)
 
 FunctionCall.setPattern(
   apply(
@@ -234,14 +235,14 @@ FunctionCall.setPattern(
       opt_sc(
         kleft(
           list_sc(opt_sc(Expression), tok(TokenKind.Comma)),
-          opt_sc(tok(TokenKind.Comma))
-        )
+          opt_sc(tok(TokenKind.Comma)),
+        ),
       ),
-      tok(TokenKind.RightParen)
+      tok(TokenKind.RightParen),
     ),
     (
       [identifier, _leftParen, parameters, _rightParen],
-      tokenRange
+      tokenRange,
     ): ast.FunctionCall => {
       return {
         kind: "FunctionCall",
@@ -251,10 +252,10 @@ FunctionCall.setPattern(
           from: tokenRange[0]?.pos.index || 0,
           to: _rightParen.pos.index + 1,
         },
-      };
-    }
-  )
-);
+      }
+    },
+  ),
+)
 
 PrintExpression.setPattern(
   apply(
@@ -267,19 +268,40 @@ PrintExpression.setPattern(
           from: tokenRange[0]?.pos.index || 0,
           to: expression.meta.to + 1,
         },
-      };
-    }
-  )
-);
+      }
+    },
+  ),
+)
+
+ArrayExpression.setPattern(
+  apply(
+    seq(
+      tok(TokenKind.LeftSquareBracket),
+      list_sc(opt_sc(Expression), tok(TokenKind.Comma)),
+      tok(TokenKind.RightSquareBracket),
+    ),
+    ([, elements], tokenRange): ast.ArrayExpression => {
+      return {
+        kind: "ArrayExpression",
+        elements: elements.filter((e): e is ast.Expression => !!e),
+        meta: {
+          from: tokenRange[0]?.pos.index || 0,
+          to: (elements?.[elements.length - 1]?.meta.to || 0) + 1,
+        },
+      }
+    },
+  ),
+)
 
 Expression.setPattern(
   alt_sc(
     PrintExpression,
+    ArrayExpression,
     FunctionExpression,
     VariableDeclaration,
-    AssignmentExpression
-  )
-);
+    AssignmentExpression,
+  ),
+)
 
 Program.setPattern(
   apply(
@@ -287,10 +309,10 @@ Program.setPattern(
       opt_sc(
         kleft(
           list_sc(opt_sc(Expression), opt_sc(tok(TokenKind.Newline))),
-          opt_sc(tok(TokenKind.Newline))
-        )
+          opt_sc(tok(TokenKind.Newline)),
+        ),
       ),
-      opt_sc(tok(TokenKind.Newline))
+      opt_sc(tok(TokenKind.Newline)),
     ),
     ([statements = []], tokenRange): ast.Program => {
       return {
@@ -300,16 +322,16 @@ Program.setPattern(
           from: tokenRange[0]?.pos.index || 0,
           to: statements[statements.length - 1]?.meta.to || 0,
         },
-      };
-    }
-  )
-);
+      }
+    },
+  ),
+)
 
 export function parse(expr: string) {
-  const parsed = Program.parse(lexer.parse(expr));
+  const parsed = Program.parse(lexer.parse(expr))
   if (parsed.successful) {
-    return parsed.candidates[0]?.result!;
+    return parsed.candidates[0]?.result!
   } else {
-    return parsed.error;
+    return parsed.error
   }
 }
