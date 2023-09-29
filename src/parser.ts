@@ -11,27 +11,27 @@ import {
   seq,
   str,
   tok,
-} from "typescript-parsec";
-import { TokenKind, lexer } from "./lexer";
-import type * as ast from "./ast";
+} from "typescript-parsec"
+import { TokenKind, lexer } from "./lexer"
+import type * as ast from "./ast"
 
-export const Expression = rule<TokenKind, ast.Expression>();
+export const Expression = rule<TokenKind, ast.Expression>()
 
-const NumericLiteral = rule<TokenKind, ast.NumericLiteral>();
-const Identifier = rule<TokenKind, ast.Identifier>();
-const Term = rule<TokenKind, ast.Expression>();
+const NumericLiteral = rule<TokenKind, ast.NumericLiteral>()
+const Identifier = rule<TokenKind, ast.Identifier>()
+const Term = rule<TokenKind, ast.Expression>()
 
-const UnaryExpression = rule<TokenKind, ast.UnaryExpression>();
-const MultiplicativeExpression = rule<TokenKind, ast.Expression>();
-const PowerExpression = rule<TokenKind, ast.Expression>();
-const AdditiveExpression = rule<TokenKind, ast.Expression>();
-const AssignmentExpression = rule<TokenKind, ast.Expression>();
-const VariableDeclaration = rule<TokenKind, ast.VariableDeclaration>();
-const FunctionExpression = rule<TokenKind, ast.FunctionExpression>();
-const FunctionCall = rule<TokenKind, ast.FunctionCall>();
-const PrintExpression = rule<TokenKind, ast.PrintExpression>();
+const UnaryExpression = rule<TokenKind, ast.UnaryExpression>()
+const MultiplicativeExpression = rule<TokenKind, ast.Expression>()
+const PowerExpression = rule<TokenKind, ast.Expression>()
+const AdditiveExpression = rule<TokenKind, ast.Expression>()
+const AssignmentExpression = rule<TokenKind, ast.Expression>()
+const VariableDeclaration = rule<TokenKind, ast.VariableDeclaration>()
+const FunctionExpression = rule<TokenKind, ast.FunctionExpression>()
+const FunctionCall = rule<TokenKind, ast.FunctionCall>()
+const PrintExpression = rule<TokenKind, ast.PrintExpression>()
 
-export const Program = rule<TokenKind, ast.Program>();
+export const Program = rule<TokenKind, ast.Program>()
 
 NumericLiteral.setPattern(
   apply(tok(TokenKind.Number), (value, tokenRange): ast.NumericLiteral => {
@@ -42,9 +42,9 @@ NumericLiteral.setPattern(
         from: tokenRange[0]?.pos.index || 0,
         to: tokenRange[0]?.pos.index! + tokenRange[0]?.text.length!,
       },
-    };
+    }
   })
-);
+)
 
 Identifier.setPattern(
   apply(tok(TokenKind.Identifier), (token, tokenRange): ast.Identifier => {
@@ -55,9 +55,9 @@ Identifier.setPattern(
         from: tokenRange[0]?.pos.index || 0,
         to: (tokenRange[0]?.pos.index || 0) + token.text.length,
       },
-    };
+    }
   })
-);
+)
 
 UnaryExpression.setPattern(
   apply(
@@ -71,10 +71,10 @@ UnaryExpression.setPattern(
           from: tokenRange[0]?.pos.index || 0,
           to: operand.meta.to,
         },
-      };
+      }
     }
   )
-);
+)
 
 Term.setPattern(
   alt_sc(
@@ -84,7 +84,7 @@ Term.setPattern(
     UnaryExpression,
     kmid(str("("), Expression, str(")"))
   )
-);
+)
 
 PowerExpression.setPattern(
   alt(
@@ -103,7 +103,7 @@ PowerExpression.setPattern(
       })
     )
   )
-);
+)
 
 MultiplicativeExpression.setPattern(
   lrec_sc(
@@ -127,7 +127,7 @@ MultiplicativeExpression.setPattern(
       },
     })
   )
-);
+)
 
 AdditiveExpression.setPattern(
   lrec_sc(
@@ -147,7 +147,7 @@ AdditiveExpression.setPattern(
       },
     })
   )
-);
+)
 
 AssignmentExpression.setPattern(
   lrec_sc(
@@ -164,7 +164,7 @@ AssignmentExpression.setPattern(
       },
     })
   )
-);
+)
 
 VariableDeclaration.setPattern(
   apply(
@@ -183,10 +183,10 @@ VariableDeclaration.setPattern(
           from: tokenRange[0]?.pos.index || 0,
           to: initializer.meta.to,
         },
-      };
+      }
     }
   )
-);
+)
 
 FunctionExpression.setPattern(
   apply(
@@ -224,7 +224,7 @@ FunctionExpression.setPattern(
       },
     })
   )
-);
+)
 
 FunctionCall.setPattern(
   apply(
@@ -251,10 +251,10 @@ FunctionCall.setPattern(
           from: tokenRange[0]?.pos.index || 0,
           to: _rightParen.pos.index + 1,
         },
-      };
+      }
     }
   )
-);
+)
 
 PrintExpression.setPattern(
   apply(
@@ -267,10 +267,10 @@ PrintExpression.setPattern(
           from: tokenRange[0]?.pos.index || 0,
           to: expression.meta.to + 1,
         },
-      };
+      }
     }
   )
-);
+)
 
 Expression.setPattern(
   alt_sc(
@@ -279,7 +279,7 @@ Expression.setPattern(
     VariableDeclaration,
     AssignmentExpression
   )
-);
+)
 
 Program.setPattern(
   apply(
@@ -300,16 +300,16 @@ Program.setPattern(
           from: tokenRange[0]?.pos.index || 0,
           to: statements[statements.length - 1]?.meta.to || 0,
         },
-      };
+      }
     }
   )
-);
+)
 
 export function parse(expr: string) {
-  const parsed = Program.parse(lexer.parse(expr));
+  const parsed = Program.parse(lexer.parse(expr))
   if (parsed.successful) {
-    return parsed.candidates[0]?.result!;
+    return parsed.candidates[0]?.result!
   } else {
-    return parsed.error;
+    return parsed.error
   }
 }
