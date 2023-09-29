@@ -1,6 +1,6 @@
-import { expect } from "vitest";
-import * as ast from "./ast";
-import type { OperatorTokenKind, TokenKind } from "./lexer";
+import { expect } from "vitest"
+import * as ast from "./ast"
+import type { OperatorTokenKind, TokenKind } from "./lexer"
 
 export function NumericLiteral(
   value: number,
@@ -10,7 +10,7 @@ export function NumericLiteral(
     kind: "NumericLiteral",
     value,
     meta,
-  } as const;
+  } as const
 }
 
 export function BinaryExpression(
@@ -25,7 +25,7 @@ export function BinaryExpression(
     operator,
     right,
     meta,
-  } as const;
+  } as const
 }
 
 export function UnaryExpression(
@@ -38,7 +38,7 @@ export function UnaryExpression(
     operator,
     operand,
     meta,
-  } as const;
+  } as const
 }
 
 export function Identifier(
@@ -49,7 +49,7 @@ export function Identifier(
     kind: "Identifier",
     name,
     meta,
-  } as const;
+  } as const
 }
 
 export function VariableDeclaration(
@@ -62,7 +62,7 @@ export function VariableDeclaration(
     name,
     initializer,
     meta,
-  } as const;
+  } as const
 }
 
 export function FunctionExpression(
@@ -75,7 +75,7 @@ export function FunctionExpression(
     parameters,
     body,
     meta,
-  } as const;
+  } as const
 }
 
 export function CallExpression(
@@ -88,7 +88,7 @@ export function CallExpression(
     name,
     arguments: args,
     meta,
-  } as const;
+  } as const
 }
 
 export function Program(
@@ -99,5 +99,5 @@ export function Program(
     kind: "Program",
     statements,
     meta,
-  } as const;
+  } as const
 }

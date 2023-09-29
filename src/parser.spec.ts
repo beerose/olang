@@ -1,8 +1,8 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest"
 
-import { Node } from "./ast";
-import { TokenKind } from "./lexer";
-import { parse } from "./test/test-utils";
+import { Node } from "./ast"
+import { TokenKind } from "./lexer"
+import { parse } from "./test/test-utils"
 import {
   BinaryExpression,
   UnaryExpression,
@@ -12,13 +12,13 @@ import {
   FunctionExpression,
   CallExpression,
   Program,
-} from "./factory";
+} from "./factory"
 
 const expectParsed = (expression: string, expected: Node) => {
-  if (!("statements" in expected)) expected = Program([expected]);
+  if (!("statements" in expected)) expected = Program([expected])
 
-  expect(parse(expression).statements).toStrictEqual(expected.statements);
-};
+  expect(parse(expression).statements).toStrictEqual(expected.statements)
+}
 
 describe("parser", () => {
   it("parses numeric literals", () => {
@@ -26,18 +26,18 @@ describe("parser", () => {
       kind: "NumericLiteral",
       value: 1,
       meta: expect.any(Object),
-    });
+    })
 
     expectParsed("1000.0002", {
       kind: "NumericLiteral",
       value: 1000.0002,
       meta: expect.any(Object),
-    });
-  });
+    })
+  })
 
   it("parses unary expressions", () => {
-    expectParsed("-1.5", UnaryExpression(TokenKind.Minus, NumericLiteral(1.5)));
-  });
+    expectParsed("-1.5", UnaryExpression(TokenKind.Minus, NumericLiteral(1.5)))
+  })
 
   describe("arithmetic expressions", () => {
     it("parses multiplication", () => {
@@ -48,7 +48,7 @@ describe("parser", () => {
           TokenKind.Asterisk,
           NumericLiteral(2)
         )
-      );
+      )
 
       expectParsed("1 * 2 * 3", {
         kind: "BinaryExpression",
@@ -62,8 +62,8 @@ describe("parser", () => {
         },
         right: NumericLiteral(3),
         meta: expect.any(Object),
-      });
-    });
+      })
+    })
 
     it("parses exponentation", () => {
       expectParsed(
@@ -73,7 +73,7 @@ describe("parser", () => {
           TokenKind.AsteriskAsterisk,
           NumericLiteral(3)
         )
-      );
+      )
 
       // 2 ^ (3 ^ 2)
       expectParsed(
@@ -87,7 +87,7 @@ describe("parser", () => {
             NumericLiteral(2)
           )
         )
-      );
+      )
 
       expectParsed(
         "10 ** 2 * 3",
@@ -100,7 +100,7 @@ describe("parser", () => {
           TokenKind.Asterisk,
           NumericLiteral(3)
         )
-      );
+      )
 
       expectParsed(
         "10 * 2 ** 3",
@@ -113,8 +113,8 @@ describe("parser", () => {
             NumericLiteral(3)
           )
         )
-      );
-    });
+      )
+    })
 
     //  (parens, exponents, multiplications and division (from left to right), multiplication and subtraction (from left to right)
     it("satisfies PEMDAS", () => {
@@ -125,7 +125,7 @@ describe("parser", () => {
           TokenKind.Asterisk,
           NumericLiteral(2)
         )
-      );
+      )
 
       expectParsed(
         "1 + 2 * 2 + 1",
@@ -142,17 +142,17 @@ describe("parser", () => {
           TokenKind.Plus,
           NumericLiteral(1)
         )
-      );
-    });
-  });
+      )
+    })
+  })
 
   it("parses parentheses", () => {
-    expectParsed("(1)", NumericLiteral(1));
+    expectParsed("(1)", NumericLiteral(1))
 
     expectParsed(
       "(1 + 2)",
       BinaryExpression(NumericLiteral(1), TokenKind.Plus, NumericLiteral(2))
-    );
+    )
 
     expectParsed(
       "1 * (2 + 3)",
@@ -161,7 +161,7 @@ describe("parser", () => {
         TokenKind.Asterisk,
         BinaryExpression(NumericLiteral(2), TokenKind.Plus, NumericLiteral(3))
       )
-    );
+    )
 
     expectParsed(
       "(1 + 2) * 3",
@@ -170,16 +170,16 @@ describe("parser", () => {
         TokenKind.Asterisk,
         NumericLiteral(3)
       )
-    );
-  });
+    )
+  })
 
   it("parses identifiers", () => {
-    expectParsed("a", Identifier("a"));
+    expectParsed("a", Identifier("a"))
 
     expectParsed(
       "a + b",
       BinaryExpression(Identifier("a"), TokenKind.Plus, Identifier("b"))
-    );
+    )
 
     expectParsed(
       "a + b * c",
@@ -188,7 +188,7 @@ describe("parser", () => {
         TokenKind.Plus,
         BinaryExpression(Identifier("b"), TokenKind.Asterisk, Identifier("c"))
       )
-    );
+    )
 
     expectParsed(
       "a * b + c",
@@ -197,7 +197,7 @@ describe("parser", () => {
         TokenKind.Plus,
         Identifier("c")
       )
-    );
+    )
 
     expectParsed(
       "a * (b + c) / 2",
@@ -210,7 +210,7 @@ describe("parser", () => {
         TokenKind.RightSlash,
         NumericLiteral(2)
       )
-    );
+    )
 
     expectParsed(
       "2 * (a + b) * c",
@@ -223,21 +223,21 @@ describe("parser", () => {
         TokenKind.Asterisk,
         Identifier("c")
       )
-    );
-  });
+    )
+  })
 
   it("parses assignments", () => {
     expectParsed(
       "a = 1",
       BinaryExpression(Identifier("a"), TokenKind.Equals, NumericLiteral(1))
-    );
-  });
+    )
+  })
 
   it("parses variable declarations", () => {
     expectParsed(
       "let a = 1",
       VariableDeclaration(Identifier("a"), NumericLiteral(1))
-    );
+    )
 
     expectParsed(
       "let a = 1 + 2",
@@ -245,7 +245,7 @@ describe("parser", () => {
         Identifier("a"),
         BinaryExpression(NumericLiteral(1), TokenKind.Plus, NumericLiteral(2))
       )
-    );
+    )
 
     expectParsed(
       "let a = inc(1)",
@@ -253,7 +253,7 @@ describe("parser", () => {
         Identifier("a"),
         CallExpression(Identifier("inc"), [NumericLiteral(1)])
       )
-    );
+    )
 
     expectParsed(
       "let a = 1 + 2 * 3",
@@ -269,15 +269,15 @@ describe("parser", () => {
           )
         )
       )
-    );
-  });
+    )
+  })
 
   it("parses function expression", () => {
     expectParsed(
       // noop
       "() => {}",
       FunctionExpression([], [])
-    );
+    )
 
     expectParsed(
       "() => 1 + 2",
@@ -285,12 +285,12 @@ describe("parser", () => {
         [],
         [BinaryExpression(NumericLiteral(1), TokenKind.Plus, NumericLiteral(2))]
       )
-    );
+    )
 
     expectParsed(
       "(b) => 1",
       FunctionExpression([Identifier("b")], [NumericLiteral(1)])
-    );
+    )
 
     expectParsed(
       "(b, c) => 1",
@@ -298,7 +298,7 @@ describe("parser", () => {
         [Identifier("b"), Identifier("c")],
         [NumericLiteral(1)]
       )
-    );
+    )
 
     expectParsed(
       "(b, c) => b + c",
@@ -306,7 +306,7 @@ describe("parser", () => {
         [Identifier("b"), Identifier("c")],
         [BinaryExpression(Identifier("b"), TokenKind.Plus, Identifier("c"))]
       )
-    );
+    )
 
     expectParsed(
       "(b, c) => { b + c }",
@@ -314,7 +314,7 @@ describe("parser", () => {
         [Identifier("b"), Identifier("c")],
         [BinaryExpression(Identifier("b"), TokenKind.Plus, Identifier("c"))]
       )
-    );
+    )
 
     expectParsed(
       `(b, c) => {
@@ -328,7 +328,7 @@ describe("parser", () => {
           BinaryExpression(Identifier("b"), TokenKind.Minus, Identifier("c")),
         ]
       )
-    );
+    )
 
     expectParsed(
       `(b, c) => {
@@ -345,8 +345,8 @@ describe("parser", () => {
           Identifier("x"),
         ]
       )
-    );
-  });
+    )
+  })
 
   it("parses function declarations", () => {
     expectParsed(
@@ -355,7 +355,7 @@ describe("parser", () => {
         Identifier("a"),
         FunctionExpression([], [NumericLiteral(1)])
       )
-    );
+    )
 
     expectParsed(
       "let a = (b) => 1",
@@ -363,7 +363,7 @@ describe("parser", () => {
         Identifier("a"),
         FunctionExpression([Identifier("b")], [NumericLiteral(1)])
       )
-    );
+    )
 
     expectParsed(
       "let a = (b, c) => { b + c }",
@@ -374,18 +374,18 @@ describe("parser", () => {
           [BinaryExpression(Identifier("b"), TokenKind.Plus, Identifier("c"))]
         )
       )
-    );
-  });
+    )
+  })
 
   it("parses function calls", () => {
-    expectParsed("a()", CallExpression(Identifier("a"), []));
+    expectParsed("a()", CallExpression(Identifier("a"), []))
 
-    expectParsed("a(b)", CallExpression(Identifier("a"), [Identifier("b")]));
+    expectParsed("a(b)", CallExpression(Identifier("a"), [Identifier("b")]))
 
     expectParsed(
       "a(b, c)",
       CallExpression(Identifier("a"), [Identifier("b"), Identifier("c")])
-    );
+    )
 
     expectParsed(
       "a(b, c, d)",
@@ -394,21 +394,21 @@ describe("parser", () => {
         Identifier("c"),
         Identifier("d"),
       ])
-    );
+    )
 
     expectParsed(
       "a(1 + 2)",
       CallExpression(Identifier("a"), [
         BinaryExpression(NumericLiteral(1), TokenKind.Plus, NumericLiteral(2)),
       ])
-    );
+    )
 
     expectParsed(
       "a(b + c)",
       CallExpression(Identifier("a"), [
         BinaryExpression(Identifier("b"), TokenKind.Plus, Identifier("c")),
       ])
-    );
+    )
 
     expectParsed(
       "a(b, c + d)",
@@ -416,14 +416,14 @@ describe("parser", () => {
         Identifier("b"),
         BinaryExpression(Identifier("c"), TokenKind.Plus, Identifier("d")),
       ])
-    );
+    )
 
     expectParsed(
       "inc(inc(1))",
       CallExpression(Identifier("inc"), [
         CallExpression(Identifier("inc"), [NumericLiteral(1)]),
       ])
-    );
+    )
 
     expectParsed(
       "inc(inc(1), inc(2))",
@@ -431,7 +431,7 @@ describe("parser", () => {
         CallExpression(Identifier("inc"), [NumericLiteral(1)]),
         CallExpression(Identifier("inc"), [NumericLiteral(2)]),
       ])
-    );
+    )
 
     expectParsed(
       "inc(inc(1) + inc(2))",
@@ -442,8 +442,8 @@ describe("parser", () => {
           CallExpression(Identifier("inc"), [NumericLiteral(2)])
         ),
       ])
-    );
-  });
+    )
+  })
 
   it("parses function calls within binary operations", () => {
     expectParsed(
@@ -453,14 +453,14 @@ describe("parser", () => {
         TokenKind.Plus,
         CallExpression(Identifier("b"), [])
       )
-    );
-  });
+    )
+  })
 
   it("parses programs", () => {
     expectParsed("let a = 1", {
       kind: "Program",
       statements: [VariableDeclaration(Identifier("a"), NumericLiteral(1))],
-    });
+    })
 
     expectParsed(
       `let a = 1
@@ -472,7 +472,7 @@ describe("parser", () => {
           VariableDeclaration(Identifier("b"), NumericLiteral(2)),
         ],
       }
-    );
+    )
 
     expectParsed(
       `let a = 1
@@ -487,7 +487,7 @@ describe("parser", () => {
           VariableDeclaration(Identifier("c"), NumericLiteral(3)),
         ],
       }
-    );
+    )
 
     expectParsed(
       `let a = 1
@@ -503,7 +503,7 @@ describe("parser", () => {
           VariableDeclaration(Identifier("d"), NumericLiteral(4)),
         ],
       }
-    );
+    )
 
     expectParsed(
       `let a = () => 1
@@ -532,6 +532,6 @@ describe("parser", () => {
           ),
         ],
       }
-    );
-  });
-});
+    )
+  })
+})
