@@ -30,6 +30,7 @@ const VariableDeclaration = rule<TokenKind, ast.VariableDeclaration>()
 const FunctionExpression = rule<TokenKind, ast.FunctionExpression>()
 const FunctionCall = rule<TokenKind, ast.FunctionCall>()
 const PrintExpression = rule<TokenKind, ast.PrintExpression>()
+const ArrayExpression = rule<TokenKind, ast.ArrayExpression>()
 
 export const Program = rule<TokenKind, ast.Program>()
 
@@ -272,9 +273,30 @@ PrintExpression.setPattern(
   )
 )
 
+ArrayExpression.setPattern(
+  apply(
+    seq(
+      tok(TokenKind.LeftSquareBracket),
+      list_sc(opt_sc(Expression), tok(TokenKind.Comma)),
+      tok(TokenKind.RightSquareBracket)
+    ),
+    ([, elements], tokenRange): ast.ArrayExpression => {
+      return {
+        kind: "ArrayExpression",
+        elements: elements.filter((e): e is ast.Expression => !!e),
+        meta: {
+          from: tokenRange[0]?.pos.index || 0,
+          to: (elements?.[elements.length - 1]?.meta.to || 0) + 1,
+        },
+      }
+    }
+  )
+)
+
 Expression.setPattern(
   alt_sc(
     PrintExpression,
+    ArrayExpression,
     FunctionExpression,
     VariableDeclaration,
     AssignmentExpression
