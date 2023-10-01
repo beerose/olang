@@ -1,11 +1,10 @@
 /* eslint-disable no-case-declarations */
-import { useState } from "react";
-import * as ast from "../../src/ast";
-import { ParseError, TokenError } from "typescript-parsec";
-import { type EvaluationEvents, Value } from "../../src/interpreter";
-import { unsafeEntries } from "./lib/unsafeEntries";
-import { expressionColors } from "./colors";
-import { Error } from "./error";
+import { useState } from "react"
+import { ast, type EvaluationEvents, Value } from "@olang/core"
+import { ParseError, TokenError } from "typescript-parsec"
+import { unsafeEntries } from "./lib/unsafeEntries"
+import { expressionColors } from "./colors"
+import { Error } from "./error"
 
 export function Evaluator({
   ast: ast,
@@ -14,23 +13,23 @@ export function Evaluator({
   evaluationEvents: events,
   setHighlightRange,
 }: {
-  ast: ast.Program | undefined;
-  result: Value;
+  ast: ast.Program | undefined
+  result: Value
   errors: {
-    tokenError?: TokenError | undefined;
-    parseError?: ParseError | undefined;
-    interpreterError?: Error | undefined;
-  };
-  evaluationEvents: EvaluationEvents;
-  setHighlightRange: (range: { from: number; to: number }) => void;
+    tokenError?: TokenError | undefined
+    parseError?: ParseError | undefined
+    interpreterError?: Error | undefined
+  }
+  evaluationEvents: EvaluationEvents
+  setHighlightRange: (range: { from: number; to: number }) => void
 }) {
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [currentIndex, setCurrentIndex] = useState(0)
 
   const onNext = () => {
     const nextIndex =
-      currentIndex + 1 >= events.length ? currentIndex : currentIndex + 1;
-    setCurrentIndex(nextIndex);
-    const currentEvent = events[nextIndex];
+      currentIndex + 1 >= events.length ? currentIndex : currentIndex + 1
+    setCurrentIndex(nextIndex)
+    const currentEvent = events[nextIndex]
     if (
       currentEvent &&
       typeof currentEvent.pos.from !== "undefined" &&
@@ -39,14 +38,14 @@ export function Evaluator({
       setHighlightRange({
         from: currentEvent.pos.from,
         to: currentEvent.pos.to,
-      });
+      })
     }
-  };
+  }
 
   const onPrev = () => {
-    const prevIndex = currentIndex - 1 < 0 ? currentIndex : currentIndex - 1;
-    setCurrentIndex(prevIndex);
-    const currentEvent = events[prevIndex];
+    const prevIndex = currentIndex - 1 < 0 ? currentIndex : currentIndex - 1
+    setCurrentIndex(prevIndex)
+    const currentEvent = events[prevIndex]
     if (
       currentEvent &&
       typeof currentEvent.pos.from !== "undefined" &&
@@ -55,9 +54,9 @@ export function Evaluator({
       setHighlightRange({
         from: currentEvent.pos.from,
         to: currentEvent.pos.to,
-      });
+      })
     }
-  };
+  }
 
   if (errors.tokenError || errors.parseError || errors.interpreterError) {
     return (
@@ -66,11 +65,11 @@ export function Evaluator({
         parseError={errors.parseError}
         interpreterError={errors.interpreterError}
       />
-    );
+    )
   }
 
   if (!ast) {
-    return null;
+    return null
   }
 
   return (
@@ -109,15 +108,15 @@ export function Evaluator({
         <EventInfo event={events[currentIndex]} />
       </div>
     </div>
-  );
+  )
 }
 
 type EventInfoProps = {
-  event: EvaluationEvents[number] | undefined;
-};
+  event: EvaluationEvents[number] | undefined
+}
 
 const EventInfo = ({ event }: EventInfoProps) => {
-  if (!event) return null;
+  if (!event) return null
 
   return (
     <div className="py-3 text-xs">
@@ -134,15 +133,15 @@ const EventInfo = ({ event }: EventInfoProps) => {
       <div className="py-3">Node's scope:</div>
       <Scope scope={event.scope} />
     </div>
-  );
-};
+  )
+}
 
 type BindingValueProps = {
-  value: Value;
-};
+  value: Value
+}
 
 const BindingValue = ({ value }: BindingValueProps) => {
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(false)
   if (typeof value === "object" && value !== null && "kind" in value) {
     return (
       <span className="relative text-xs">
@@ -166,25 +165,25 @@ const BindingValue = ({ value }: BindingValueProps) => {
           {expanded ? "See less" : "See more"}
         </button>
       </span>
-    );
+    )
   }
 
-  return <span>{value}</span>;
-};
+  return <span>{value}</span>
+}
 
 type ScopeProps = {
-  scope: EvaluationEvents[number]["scope"];
-};
+  scope: EvaluationEvents[number]["scope"]
+}
 
 const getAllBindings = (
   scope: EvaluationEvents[number]["scope"]
 ): Record<string, Value> => {
-  if (!scope.parent) return scope.bindings;
-  return { ...scope.bindings, ...getAllBindings(scope.parent) };
-};
+  if (!scope.parent) return scope.bindings
+  return { ...scope.bindings, ...getAllBindings(scope.parent) }
+}
 
 const Scope = ({ scope }: ScopeProps) => {
-  const allBindings = getAllBindings(scope);
+  const allBindings = getAllBindings(scope)
   return (
     <table className="border border-black text-xs">
       <tbody>
@@ -198,5 +197,5 @@ const Scope = ({ scope }: ScopeProps) => {
         ))}
       </tbody>
     </table>
-  );
-};
+  )
+}

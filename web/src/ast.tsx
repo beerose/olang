@@ -1,49 +1,48 @@
-import * as ast from "../../src/ast";
-import { ParseError, TokenError } from "typescript-parsec";
-import { expressionColors } from "./colors";
-import { Error } from "./error";
+import { ast, Value } from "@olang/core"
+import { ParseError, TokenError } from "typescript-parsec"
+import { expressionColors } from "./colors"
+import { Error } from "./error"
 
-import { useState } from "react";
-import { Value } from "../../src/interpreter";
+import { useState } from "react"
 
 const ASTNode = ({
   node,
   indentLevel,
   setHighlightRange,
 }: {
-  node: ast.Node;
-  indentLevel: number;
-  setHighlightRange: (range: { from: number; to: number }) => void;
+  node: ast.Node
+  indentLevel: number
+  setHighlightRange: (range: { from: number; to: number }) => void
 }) => {
-  const color = expressionColors[node.kind];
+  const color = expressionColors[node.kind]
   const [expanded, setExpanded] = useState<string[]>(() => {
     if (node.kind === "Program") {
-      return ["statements"];
+      return ["statements"]
     }
-    return [];
-  });
+    return []
+  })
 
   const handleCollapedToggle = (key: string) => {
     setExpanded((prev) => {
       if (prev.includes(key)) {
-        return prev.filter((item) => item !== key);
+        return prev.filter((item) => item !== key)
       }
-      return [...prev, key];
-    });
-  };
+      return [...prev, key]
+    })
+  }
 
   const handleHighlight = () => {
     if (
       typeof node.meta.from !== "number" ||
       typeof node.meta.to !== "number"
     ) {
-      return;
+      return
     }
     setHighlightRange({
       from: node.meta.from,
       to: node.meta.to,
-    });
-  };
+    })
+  }
 
   const renderNode = (key: string, value: Value) => {
     if (key === "kind") {
@@ -53,7 +52,7 @@ const ASTNode = ({
             {JSON.stringify(value).replace(/"/g, "")}
           </button>
         </strong>
-      );
+      )
     }
     if (Array.isArray(value)) {
       return (
@@ -85,7 +84,7 @@ const ASTNode = ({
             </div>
           )}
         </>
-      );
+      )
     }
     if (typeof value === "object" && value !== null) {
       return (
@@ -113,7 +112,7 @@ const ASTNode = ({
             </div>
           )}
         </>
-      );
+      )
     }
     return (
       <div className="flex items-center">
@@ -124,8 +123,8 @@ const ASTNode = ({
           <span>{value}</span>
         </div>
       </div>
-    );
-  };
+    )
+  }
 
   return (
     <div style={{ marginLeft: `${indentLevel * 10}px`, color }}>
@@ -141,14 +140,14 @@ const ASTNode = ({
           ))}
       </div>
     </div>
-  );
-};
+  )
+}
 
 interface AstViewerProps {
-  ast: ast.Program | undefined;
-  parseError: ParseError | undefined;
-  lexerError: TokenError | undefined;
-  setHighlightRange: (range: { from: number; to: number }) => void;
+  ast: ast.Program | undefined
+  parseError: ParseError | undefined
+  lexerError: TokenError | undefined
+  setHighlightRange: (range: { from: number; to: number }) => void
 }
 
 export const AstViewer = ({
@@ -158,11 +157,16 @@ export const AstViewer = ({
   setHighlightRange,
 }: AstViewerProps) => {
   if (parseError || lexerError) {
-    return <Error parseError={parseError} tokenError={lexerError} />;
+    return (
+      <Error
+        parseError={parseError}
+        tokenError={lexerError}
+      />
+    )
   }
 
   if (!ast) {
-    return null;
+    return null
   }
 
   return (
@@ -173,5 +177,5 @@ export const AstViewer = ({
         setHighlightRange={setHighlightRange}
       />
     </div>
-  );
-};
+  )
+}

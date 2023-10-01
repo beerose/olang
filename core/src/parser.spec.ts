@@ -460,6 +460,7 @@ describe("parser", () => {
     expectParsed("let a = 1", {
       kind: "Program",
       statements: [VariableDeclaration(Identifier("a"), NumericLiteral(1))],
+      meta: expect.any(Object),
     })
 
     expectParsed(
@@ -471,6 +472,7 @@ describe("parser", () => {
           VariableDeclaration(Identifier("a"), NumericLiteral(1)),
           VariableDeclaration(Identifier("b"), NumericLiteral(2)),
         ],
+        meta: expect.any(Object),
       }
     )
 
@@ -486,6 +488,7 @@ describe("parser", () => {
           VariableDeclaration(Identifier("b"), NumericLiteral(2)),
           VariableDeclaration(Identifier("c"), NumericLiteral(3)),
         ],
+        meta: expect.any(Object),
       }
     )
 
@@ -502,6 +505,7 @@ describe("parser", () => {
           VariableDeclaration(Identifier("c"), NumericLiteral(3)),
           VariableDeclaration(Identifier("d"), NumericLiteral(4)),
         ],
+        meta: expect.any(Object),
       }
     )
 
@@ -531,6 +535,7 @@ describe("parser", () => {
             )
           ),
         ],
+        meta: expect.any(Object),
       }
     )
   })

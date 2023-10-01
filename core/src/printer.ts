@@ -23,6 +23,8 @@ export function printAst(node: ast.Node): string {
       return `${node.name.name}(${node.arguments.map(printAst).join(", ")})`
     case "PrintExpression":
       return `${printAst(node.expression)}`
+    case "ArrayExpression":
+      return `[${node.elements.map(printAst).join(", ")}]`
     default:
       const _exhaustiveCheck: never = node
       throw new Error(`Unhandled node kind: ${(node as ast.Node).kind}`)

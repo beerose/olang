@@ -1,5 +1,4 @@
-import { SyntaxKind } from "../../src/ast";
-import { TokenKind } from "../../src/lexer";
+import { ast, TokenKind } from "@olang/core"
 
 export const tokenColors: { [key in TokenKind]: string } = {
   [TokenKind.Number]: "#00b5b3",
@@ -21,9 +20,11 @@ export const tokenColors: { [key in TokenKind]: string } = {
   [TokenKind.Percent]: "#422c4f",
   [TokenKind.Newline]: "lightgray",
   [TokenKind.QuestionMark]: "#422c4f",
-};
+  [TokenKind.LeftSquareBracket]: "#422c4f",
+  [TokenKind.RightSquareBracket]: "#422c4f",
+}
 
-export const expressionColors: { [key in SyntaxKind]: string } = {
+export const expressionColors: { [key in ast.SyntaxKind]: string } = {
   BinaryExpression: "#422c4f",
   UnaryExpression: "#4f004e",
   NumericLiteral: "#015c6b",
@@ -33,4 +34,5 @@ export const expressionColors: { [key in SyntaxKind]: string } = {
   FunctionCall: "rgb(58, 151, 10)",
   Program: "#c751c4",
   PrintExpression: "#422c4f",
-};
+  ArrayExpression: "#422c4f",
+}

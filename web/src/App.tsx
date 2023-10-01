@@ -1,82 +1,81 @@
-import { useLayoutEffect, useMemo, useState } from "react";
-import { ParseError, Token, TokenError } from "typescript-parsec";
-
-import * as ast from "../../src/ast";
-import { TokenKind, lexer } from "../../src/lexer";
-
+import { useLayoutEffect, useMemo, useState } from "react"
+import { ParseError, Token, TokenError } from "typescript-parsec"
 import {
+  ast,
+  TokenKind,
+  lexer,
   EvaluationEvents,
   Value,
   astDebugger,
   interpret,
-} from "../../src/interpreter";
-import * as parser from "../../src/parser";
+  parse,
+} from "@olang/core"
 
-import { AstViewer } from "./ast";
-import { cx } from "./lib/cx";
-import { Evaluator } from "./evaluator";
-import { Lexer } from "./lexer";
-import { useRouter } from "./lib/router";
+import { AstViewer } from "./ast"
+import { cx } from "./lib/cx"
+import { Evaluator } from "./evaluator"
+import { Lexer } from "./lexer"
+import { useRouter } from "./lib/router"
 
-import "./index.css";
-import { Editor } from "./Editor";
+import "./index.css"
+import { Editor } from "./Editor"
 
 const DEFAULT_CODE = `
 let add = (a, b) => {
   a + b
 }
 add(1, 2)
-`.trim();
+`.trim()
 
 const tabs = [
   { name: "Lexer", href: "/lexer" },
   { name: "Parser", href: "/parser" },
   { name: "Interpreter", href: "/interpreter" },
-];
+]
 
 const runCode = (
   code: string
 ): {
-  tokens?: Token<TokenKind>[] | undefined;
-  tokenError?: TokenError | undefined;
-  parseError?: ParseError | undefined;
-  interpreterError?: Error | undefined;
-  ast?: ast.Program | undefined;
-  evaluationEvents?: EvaluationEvents | undefined;
-  result?: Value | undefined;
+  tokens?: Token<TokenKind>[] | undefined
+  tokenError?: TokenError | undefined
+  parseError?: ParseError | undefined
+  interpreterError?: Error | undefined
+  ast?: ast.Program | undefined
+  evaluationEvents?: EvaluationEvents | undefined
+  result?: Value | undefined
 } => {
-  const tokens: Token<TokenKind>[] = [];
-  let tokenError: TokenError | undefined;
+  const tokens: Token<TokenKind>[] = []
+  let tokenError: TokenError | undefined
   try {
-    let token = lexer.parse(code);
+    let token = lexer.parse(code)
     while (token) {
-      tokens.push(token);
-      token = token.next;
+      tokens.push(token)
+      token = token.next
     }
   } catch (err) {
-    tokenError = err as TokenError;
+    tokenError = err as TokenError
   }
-  if (tokenError) return { tokenError };
+  if (tokenError) return { tokenError }
 
-  let ast: ast.Program | undefined;
-  let parseError: ParseError | undefined;
+  let ast: ast.Program | undefined
+  let parseError: ParseError | undefined
 
   try {
-    const parseResult = parser.parse(code);
-    if (parseResult.kind === "Error") parseError = parseResult;
-    else ast = parseResult;
+    const parseResult = parse(code)
+    if (parseResult.kind === "Error") parseError = parseResult
+    else ast = parseResult
   } catch (err) {
-    parseError = err as ParseError;
+    parseError = err as ParseError
   }
-  if (parseError) return { parseError };
+  if (parseError) return { parseError }
 
-  const evaluationEvents: EvaluationEvents = [];
-  let programResult: Value | undefined;
-  let interpreterError: Error | undefined;
+  const evaluationEvents: EvaluationEvents = []
+  let programResult: Value | undefined
+  let interpreterError: Error | undefined
   try {
-    programResult = ast && interpret(ast, astDebugger(evaluationEvents));
+    programResult = ast && interpret(ast, astDebugger(evaluationEvents))
   } catch (err) {
-    interpreterError = err as Error;
+    interpreterError = err as Error
   }
 
   return {
@@ -87,30 +86,30 @@ const runCode = (
     ast,
     evaluationEvents: evaluationEvents.reverse(),
     result: programResult,
-  };
-};
+  }
+}
 
 export const App = () => {
-  const { pathname } = useRouter();
-  const [code, setCode] = useState(DEFAULT_CODE);
+  const { pathname } = useRouter()
+  const [code, setCode] = useState(DEFAULT_CODE)
   const [highlightRange, setHighlightRange] = useState<
     | {
-        from: number;
-        to: number;
+        from: number
+        to: number
       }
     | undefined
-  >(undefined);
+  >(undefined)
 
   useLayoutEffect(() => {
-    if (pathname === "/") window.history.pushState({}, "", tabs[0]?.href);
+    if (pathname === "/") window.history.pushState({}, "", tabs[0]?.href)
 
     if (pathname === "/interpreter") {
       setHighlightRange({
         from: 0,
         to: code.length,
-      });
+      })
     }
-  }, [code.length, pathname]);
+  }, [code.length, pathname])
 
   const {
     tokens,
@@ -120,7 +119,7 @@ export const App = () => {
     ast,
     evaluationEvents,
     result: programResult,
-  } = useMemo(() => runCode(code), [code]);
+  } = useMemo(() => runCode(code), [code])
 
   return (
     <main className="h-screen flex flex-row">
@@ -133,7 +132,10 @@ export const App = () => {
       </section>
       <section className="w-1/2 flex-1">
         <header className="border-b border-gray-200">
-          <nav className="flex gap-1" aria-label="Tabs">
+          <nav
+            className="flex gap-1"
+            aria-label="Tabs"
+          >
             {tabs.map((tab) => (
               <a
                 key={tab.name}
@@ -179,5 +181,5 @@ export const App = () => {
         </article>
       </section>
     </main>
-  );
-};
+  )
+}

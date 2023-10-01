@@ -174,6 +174,10 @@ export function interpret(
         return printExpressionResult
       }
 
+      case "ArrayExpression": {
+        return "TODO: ArrayExpression"
+      }
+
       case "Program": {
         let result: Value = null
         for (const statement of node.statements) {
