@@ -101,8 +101,6 @@ export const App = () => {
   >(undefined)
 
   useLayoutEffect(() => {
-    if (pathname === "/") window.history.pushState({}, "", tabs[0]?.href)
-
     if (pathname === "/interpreter") {
       setHighlightRange({
         from: 0,
@@ -154,7 +152,7 @@ export const App = () => {
           </nav>
         </header>
         <article>
-          {pathname === "/lexer" && (
+          {(pathname === "/lexer" || pathname === "/") && (
             <Lexer
               tokens={tokens}
               tokenError={tokenError}
