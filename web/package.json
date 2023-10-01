@@ -15,12 +15,13 @@
     "@codemirror/view": "^6.14.1",
     "@lezer/highlight": "^1.1.6",
     "@lezer/javascript": "^1.4.4",
+    "@olang/core": "workspace:*",
     "@uiw/codemirror-theme-github": "^4.21.7",
     "@uiw/codemirror-themes": "^4.21.7",
     "@uiw/react-codemirror": "^4.21.7",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "@olang/core": "workspace:*"
+    "vite-plugin-vercel": "^0.3.5"
   },
   "devDependencies": {
     "@tsconfig/strictest": "^2.0.1",
