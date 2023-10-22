@@ -4,6 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "dev": "vite",
     "vercel-dev-helper": "vite --port $PORT",
     "vdev": "vercel dev --local-config ./vercel.json",
     "build": "tsc && vite build",
