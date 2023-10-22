@@ -10,3 +10,5 @@ pnpm-debug.log*
 *.tgz
 
 TODO
+
+.vercel
